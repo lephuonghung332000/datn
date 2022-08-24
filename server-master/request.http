@@ -1,0 +1,59 @@
+GET http://localhost:5000
+
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "sang123456789",
+  "password": "123456"
+}
+
+###
+GET https://afternoon-forest-84153.herokuapp.com/api/auth
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGY5OWM0MGE3ZDc2MzMxOTAyZGJmY2UiLCJpYXQiOjE2MjcwMTA4NzF9.iBl7ehm-UG1ASFoI5ZWYswtgtx7OrusO88TZydDxXWQ
+
+
+###
+POST https://afternoon-forest-84153.herokuapp.com/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "vuvuvu",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGY5OWM0MGE3ZDc2MzMxOTAyZGJmY2UiLCJpYXQiOjE2MjcwMTA4NzF9.iBl7ehm-UG1ASFoI5ZWYswtgtx7OrusO88TZydDxXWQ
+
+{
+  "title": "learn react",
+  "description": "learn at youtube",
+  "url": "https://youtube.com",
+  "status": "LEARNED"
+}
+
+###
+GET http://localhost:5000/api/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGY5OWM0MGE3ZDc2MzMxOTAyZGJmY2UiLCJpYXQiOjE2MjcwMTA4NzF9.iBl7ehm-UG1ASFoI5ZWYswtgtx7OrusO88TZydDxXWQ
+
+###
+PUT http://localhost:5000/api/posts/60fa38d1021aa30394496213
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGY5OWM0MGE3ZDc2MzMxOTAyZGJmY2UiLCJpYXQiOjE2MjcwMTA4NzF9.iBl7ehm-UG1ASFoI5ZWYswtgtx7OrusO88TZydDxXWQ
+
+{
+  "title": "learn react 2",
+  "description": "learn at youtube",
+  "url": "https://youtube.com",
+  "status": "LEARNED"
+}
+
+###
+DELETE http://localhost:5000/api/posts/60fa38d1021aa30394496213
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2MGY5OWM0MGE3ZDc2MzMxOTAyZGJmY2UiLCJpYXQiOjE2MjcwMTA4NzF9.iBl7ehm-UG1ASFoI5ZWYswtgtx7OrusO88TZydDxXWQ
