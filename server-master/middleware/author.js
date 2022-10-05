@@ -1,23 +1,24 @@
-const jwt = require('jsonwebtoken')
+const { firebase, admin } = require("../config/fbConfig");
 
-const verifyToken = (req, res, next) => {
-	const authHeader = req.header('Authorization')
-	const token = authHeader && authHeader.split(' ')[1]
+const authorMiddleware = async (req, res, next) => {
+  if(!req.header("Authorization")){
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+  const token = req.header("Authorization").replace("Bearer", "").trim();
+  var user = await firebase.auth().currentUser;
+  try {
+    if (user) {
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      if (decodedToken.uid === user.uid) {
+        req.user = user.uid;
+        return next();
+      }
+    } else {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+  } catch (e) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+};
 
-	if (!token)
-		return res
-			.status(401)
-			.json({ success: false, message: 'Access token not found' })
-
-	try {
-		const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-
-		req.userId = decoded.userId
-		next()
-	} catch (error) {
-		console.log(error)
-		return res.status(403).json({ success: false, message: 'Invalid token' })
-	}
-}
-
-module.exports = verifyToken
+module.exports = authorMiddleware

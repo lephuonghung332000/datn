@@ -1,28 +1,18 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-
-const postSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-  },
-  url: {
-    type: String,
-  
-  },
-  status: {
-    type: String,
-    enum: ["IN LEARN", "LEARNING", "LEARNED"],
-  },
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: "users",
-  },
-});
-
-const Post = new mongoose.model("posts", postSchema);
+class Post {
+  constructor(id, title,create_at,update_at, status,images,user_id,category_id,brand,address,price,description) {
+          this.id = id;
+          this.user_id = user_id;
+          this.category_id = category_id;
+          this.title = title;
+          this.create_at = create_at;
+          this.update_at = update_at;
+          this.status = status;
+          this.images = images;
+          this.brand = brand;
+          this.address = address;
+          this.price = price;
+          this.description = description
+  }
+}
 
 module.exports = Post;

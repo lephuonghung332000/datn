@@ -1,29 +1,12 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const NotificationSchema = new Schema({
-    idProduct: {
-        type: String,
-        require: true,
-    },
-    idClient: {
-        type: String,
-        require: true,
-    },
-    content: {
-        type: String,
-        require: true,
-    },
-    type: {
-        type: String,
-        require: false,
-    },
-    createAt: {
-        type: Date,
-        default: Date.now,
-    },
-
-});
-
-const Notification = mongoose.model("notifications", NotificationSchema);
+class Notification {
+  constructor(id, post_id, list_user_id, content, type, createAt) {
+    this.id = id;
+    this.post_id = post_id;
+    this.list_user_id = list_user_id;
+    this.content = content;
+    this.type = type;
+    this.createAt = createAt;
+  }
+}
 
 module.exports = Notification;

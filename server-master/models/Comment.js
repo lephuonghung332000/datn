@@ -1,41 +1,13 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-const CommentSchema = new Schema({
-    idProduct: {
-        type: String,
-        require: true,
-    },
-    content: {
-        type: String,
-        require: true,
-    },
-    image: [
-        {
-          file: {
-            type: String,
-            require: false,
-          },
-        }
-      ],
-    parentId: {
-        type: String,
-        require: false,
-    },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: 'users'
-      },
-    deleteAt: {
-        type: Date,
-        default: null,
-    },
-    createAt: {
-        type: Date,
-        default: Date.now,
-    },
-
-});
-
-const Comment = mongoose.model("comments", CommentSchema);
+class Comment {
+  constructor(id, post_id, user_id, content, image, create_at, update_at) {
+    this.id = id;
+    this.post_id = post_id;
+    this.user_id = user_id;
+    this.content = content;
+    this.image = image;
+    this.create_at = create_at;
+    this.update_at = update_at;
+  }
+}
 
 module.exports = Comment;
