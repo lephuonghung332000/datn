@@ -1,7 +1,6 @@
 require("firebase/auth");
 const firebase = require("firebase");
 const admin = require("firebase-admin");
-const functions = require('firebase-functions');
 const credentials = require("../key.json");
 
 const firebaseConfig = {
@@ -27,4 +26,4 @@ const db = admin.firestore();
 // Cloud storage
 const firebaseStorage = admin.storage().bucket();
 
-module.exports = { firebase, admin, db, firebaseStorage, functions };
+module.exports = { firebase, admin, db, firebaseStorage };
