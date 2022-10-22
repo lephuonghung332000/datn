@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon index.js",
-    "start": "nodemon index.js"
+    "start": "npm run lint && npm run build && cd server-master && npm install && nodemon index.js"
   },
   "author": "",
   "license": "ISC",
