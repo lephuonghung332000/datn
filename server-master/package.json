@@ -1,12 +1,11 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon index.js",
-    "start": "npm run lint && npm run build && cd server-master && npm install && nodemon index.js"
+    "start": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
@@ -18,7 +17,6 @@
     "fcm-node": "^1.6.1",
     "firebase": "^8.6.8",
     "firebase-admin": "^11.1.0",
-    "firebase-functions": "^3.24.1",
     "firestore": "^1.1.6",
     "http": "0.0.1-security",
     "json-parser": "^3.1.2",
@@ -28,5 +26,7 @@
     "nodemon": "^2.0.15",
     "socket.io": "^4.4.1",
     "uuid": "^9.0.0"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }
