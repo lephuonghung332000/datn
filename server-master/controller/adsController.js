@@ -8,18 +8,19 @@ const getAllAds = async (req, res) => {
     const data = await ads.get();
     const adsArray = [];
     if (data.empty) {
-      return res.status(200).json([]);
+      return res.status(200).json({ success: true, data: [] });
     }
     data.forEach((doc) => {
       const ads = new Ads(
         doc.id,
         doc.data().image,
         doc.data().title,
-        doc.data().content 
+        doc.data().content,
+        doc.data().url
       );
       adsArray.push(ads);
     });
-    return res.status(200).json(adsArray);
+    return res.status(200).json({ success: true ,data: adsArray });
   } catch (error) {
     return res
       .status(500)
@@ -47,6 +48,11 @@ const createAds = async (req, res) => {
     return res
       .status(400)
       .json({ succes: false, message: "Missing field content" });
+  }
+  if (!req.body.url) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field url" });
   }
   // Format the filename
   const timestamp = Date.now();
@@ -79,6 +85,7 @@ const createAds = async (req, res) => {
         image: signedUrlArray[0],
         title: req.body.title,
         content: req.body.content,
+        url:req.body.url,
       });
       if (response) {
         const user = await currentUser();

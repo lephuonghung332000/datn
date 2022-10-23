@@ -33,7 +33,7 @@ const signup = async (req, res) => {
       phone: req.body.phone,
       gender: req.body.gender,
       address: req.body.address,
-      fullname: req.body.fullname,
+      fullname: req.body.fullName,
       birthday: new Date(req.body.birthday).valueOf(),
       role: "user",
       fcmTokens: [],
@@ -45,7 +45,7 @@ const signup = async (req, res) => {
       return res.status(201).json({
         success: true,
         message: "Register successfully",
-        token: idToken,
+        data: idToken,
       });
     } else {
       return res
@@ -55,7 +55,7 @@ const signup = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message: "Occur in server error" });
+      .json({ success: false, message:error });
   }
 };
 
@@ -73,7 +73,7 @@ const login = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Login successfully",
-      token: idToken,
+      data: idToken,
     });
   } catch (error) {
     return res
@@ -83,22 +83,24 @@ const login = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
-  // try {
+  try {
     const token = await firebase.auth().currentUser.getIdToken(true); // here we force a refresh
     if (token) {
       return res.status(200).json({
-        token: token,
+        success: true,
+        message: "Get new token successfully",
+        data: token,
       });
     } else {
       return res
         .status(400)
         .json({ success: false, message: "Get new token failed" });
     }
-  // } catch (error) {
-  //   return res
-  //     .status(500)
-  //     .json({ success: false, message: "Occur in server error" });
-  // }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
 };
 
 const logout = async (req, res) => {
