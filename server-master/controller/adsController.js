@@ -8,19 +8,24 @@ const getAllAds = async (req, res) => {
     const data = await ads.get();
     const adsArray = [];
     if (data.empty) {
-      return res.status(200).json({ success: true, message:"Fetch ads success", data: [] });
+      return res
+        .status(200)
+        .json({ success: true, message: "Fetch ads successful", data: [] });
     }
     data.forEach((doc) => {
       const ads = new Ads(
         doc.id,
         doc.data().image,
         doc.data().title,
-        doc.data().content,
-        doc.data().url
+        doc.data().url,
+        doc.data().content
       );
+      console.log(ads);
       adsArray.push(ads);
     });
-    return res.status(200).json({ success: true ,message:"Fetch ads success",data: adsArray });
+    return res
+      .status(200)
+      .json({ success: true, message: "Fetch ads successful", data: adsArray });
   } catch (error) {
     return res
       .status(500)
@@ -85,7 +90,7 @@ const createAds = async (req, res) => {
         image: signedUrlArray[0],
         title: req.body.title,
         content: req.body.content,
-        url:req.body.url,
+        url: req.body.url,
       });
       if (response) {
         const user = await currentUser();
