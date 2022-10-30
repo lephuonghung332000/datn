@@ -8,7 +8,7 @@ const getAllAds = async (req, res) => {
     const data = await ads.get();
     const adsArray = [];
     if (data.empty) {
-      return res.status(200).json({ success: true, data: [] });
+      return res.status(200).json({ success: true, message:"Fetch ads success", data: [] });
     }
     data.forEach((doc) => {
       const ads = new Ads(
@@ -20,7 +20,7 @@ const getAllAds = async (req, res) => {
       );
       adsArray.push(ads);
     });
-    return res.status(200).json({ success: true ,data: adsArray });
+    return res.status(200).json({ success: true ,message:"Fetch ads success",data: adsArray });
   } catch (error) {
     return res
       .status(500)
