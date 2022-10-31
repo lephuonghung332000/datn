@@ -1,4 +1,4 @@
-const { db ,firebaseStorage} = require("../config/fbConfig");
+const { db, firebaseStorage } = require("../config/fbConfig");
 
 const Category = require("../models/Category");
 
@@ -8,20 +8,35 @@ const getAllCategories = async (req, res) => {
     const data = await category.get();
     const categoryArray = [];
     if (data.empty) {
-      return res.status(200).json([]);
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "Fetch category successful",
+          data: [],
+        });
     }
     data.forEach((doc) => {
-      const category = new Category(doc.id, doc.data().name,doc.data().thumbnail);
+      const category = new Category(
+        doc.id,
+        doc.data().name,
+        doc.data().thumbnail
+      );
       categoryArray.push(category);
     });
-    return res.status(200).json(categoryArray);
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Fetch category successful",
+        data: categoryArray,
+      });
   } catch (error) {
     return res
       .status(500)
       .json({ success: false, message: "Occur in server error" });
   }
 };
-
 
 const addCategory = async (req, res) => {
   var file = req.file;
@@ -58,11 +73,13 @@ const addCategory = async (req, res) => {
       expires: "03-17-2025",
     };
 
-   // Get a signed URL for the file
-    try{
+    // Get a signed URL for the file
+    try {
       const signedUrlArray = await blob.getSignedUrl(options);
       const categoryDb = db.collection("category");
-      const response = await categoryDb.doc().set({image: signedUrlArray[0],name:req.body.name});
+      const response = await categoryDb
+        .doc()
+        .set({ image: signedUrlArray[0], name: req.body.name });
       if (response) {
         return res
           .status(200)
@@ -72,18 +89,16 @@ const addCategory = async (req, res) => {
           .status(400)
           .json({ success: false, message: "Add category failed" });
       }
-    } catch(e){
+    } catch (e) {
       return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
+        .status(500)
+        .json({ success: false, message: "Occur in server error" });
     }
-   
   });
   blobWriter.end(file.buffer);
 };
 
-
 module.exports = {
   getAllCategories,
-  addCategory
+  addCategory,
 };
