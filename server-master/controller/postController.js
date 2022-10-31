@@ -22,97 +22,137 @@ function sendUpdatePostNotifications(tokens, title, status) {
   sendNotifications(tokens, message);
 }
 
-const getAllPost = async (req, res) => {
-  var user_id = req.params.id;
+async function getResultPost(user_id, status, category_id, search, page, res) {
+  var data;
+  // try {
+  if (
+    status != null &&
+    status !== "pending" &&
+    status !== "accept" &&
+    status !== "reject"
+  ) {
+    return res.status(400).json({ succes: false, message: "No found status" });
+  }
+
+  if (page) {
+    // get page
+    page = parseInt(page);
+    if (page < 1) {
+      page = 1;
+    }
+    if (page == 1) {
+      data = await queryPost(
+        user_id,
+        status,
+        category_id,
+        search,
+        PAGE_SIZE,
+        null
+      );
+    } else {
+      var start = (page - 1) * PAGE_SIZE;
+
+      const snapshot = await queryPost(
+        user_id,
+        status,
+        category_id,
+        search,
+        start,
+        null
+      );
+
+      if (snapshot.docs.length < start) {
+        data = [];
+      } else {
+        // Get the last document
+        var last = snapshot.docs[snapshot.docs.length - 1];
+
+        data = await queryPost(
+          user_id,
+          status,
+          category_id,
+          search,
+          PAGE_SIZE,
+          last.data().create_at
+        );
+      }
+    }
+    // don't pass page
+  } else {
+    data = await queryPost(user_id, status, category_id, search, null, null);
+  }
+  const postArray = [];
+  if (data.empty) {
+    return res
+      .status(200)
+      .json({ success: true, message: "Fetch post successfully", data: [] });
+  }
+  data.forEach((doc) => {
+    const post = new Post(
+      doc.id,
+      doc.data().title,
+      doc.data().create_at,
+      doc.data().update_at,
+      doc.data().status,
+      doc.data().images,
+      doc.data().user_id,
+      doc.data().category_id,
+      doc.data().brand_id,
+      doc.data().address,
+      doc.data().price,
+      doc.data().description
+    );
+    postArray.push(post);
+  });
+  return res.status(200).json({
+    success: true,
+    message: "Fetch post successfully",
+    data: postArray,
+  });
+  // } catch (error) {
+  //   return res
+  //     .status(500)
+  //     .json({ success: false, message: "Occur in server error" });
+  // }
+}
+
+const getMyPost = async (req, res) => {
+  var current = await currentUser();
+  if (!current) {
+    return res.status(400).json({ succes: false, message: "No found status" });
+  }
+
   var page = req.query.page;
   var status = req.query.status;
+  var category_id = req.query.category_id;
+  var id = current.id;
 
-  var data;
-  try {
-    const checkAdmin = await isAdmin();
-    if (!user_id && !checkAdmin) {
-      return res
-        .status(400)
-        .json({ succes: false, message: "No found post for user" });
-    }
-
-    if (
-      status != null &&
-      status !== "pending" &&
-      status !== "accept" &&
-      status !== "reject"
-    ) {
-      return res
-        .status(400)
-        .json({ succes: false, message: "No found status" });
-    }
-    if (page) {
-      // get page
-      page = parseInt(page);
-      if (page < 1) {
-        page = 1;
-      }
-      if (page == 1) {
-        data = await queryPost(user_id, status, PAGE_SIZE, null);
-      } else {
-        var start = (page - 1) * PAGE_SIZE;
-
-        const snapshot = await queryPost(user_id, status, start, null);
-
-        if (snapshot.docs.length < start) {
-          data = [];
-        } else {
-          // Get the last document
-          var last = snapshot.docs[snapshot.docs.length - 1];
-
-          data = await queryPost(
-            user_id,
-            status,
-            PAGE_SIZE,
-            last.data().create_at
-          );
-        }
-      }
-      // don't pass page
-    } else {
-      data = await queryPost(user_id, status, null, null);
-    }
-    const postArray = [];
-    if (data.empty) {
-      return res.status(200).json([]);
-    }
-    data.forEach((doc) => {
-      const post = new Post(
-        doc.id,
-        doc.data().title,
-        doc.data().create_at,
-        doc.data().update_at,
-        doc.data().status,
-        doc.data().images,
-        doc.data().user_id,
-        doc.data().category_id,
-        doc.data().brand,
-        doc.data().address,
-        doc.data().price,
-        doc.data().description
-      );
-      postArray.push(post);
-    });
-    return res.status(200).json(postArray);
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
-  }
+  getResultPost(id, status, category_id, null, page, res);
 };
 
-async function queryPost(user_id, status, limit, start) {
+const getPost = async (req, res) => {
+  var user_id = req.params.id;
+  var page = req.query.page;
+  var category_id = req.query.category_id;
+  var search = req.query.search;
+  var status = req.query.status;
+
+  getResultPost(user_id, status, category_id, search, page, res);
+};
+
+async function queryPost(user_id, status, category_id, search, limit, start) {
   var data = db.collection("post");
   if (user_id) {
     data = data.where("user_id", "==", user_id);
   }
   if (status) {
     data = data.where("status", "==", status);
+  }
+  if (category_id) {
+    data = data.where("category_id", "==", category_id);
+  }
+  if (search) {
+    data = data.where("arrayTitle", "array-contains",search.toLowerCase());
   }
   data = data.orderBy("create_at");
   if (start) {
@@ -138,7 +178,9 @@ const createPost = async (req, res) => {
   }
 
   if (!req.body.brand_id) {
-    return res.status(400).json({ succes: false, message: "Missing field" });
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field brand" });
   }
 
   if (!req.body.address) {
@@ -387,7 +429,8 @@ const deletePost = async (req, res) => {
 };
 
 module.exports = {
-  getAllPost,
+  getMyPost,
+  getPost,
   createPost,
   updatePost,
   deletePost,

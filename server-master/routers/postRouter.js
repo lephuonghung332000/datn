@@ -1,7 +1,8 @@
 const express = require("express");
 const userMiddleware = require("../middleware/author");
 const {
-  getAllPost,
+  getMyPost,
+  getPost,
   createPost,
   updatePost,
   deletePost,
@@ -15,7 +16,8 @@ const upload = multer({
   storage: multer.memoryStorage(),
 }).array("files");
 
-router.get("/:id?", getAllPost);
+router.get("/currentUser",userMiddleware, getMyPost);
+router.get("/:id?",userMiddleware, getPost);
 router.post("/addPost", upload, createPost);
 router.patch("/updatePost/:id", upload, updatePost);
 router.delete("/deletePost/:id", deletePost);

@@ -12,7 +12,7 @@ const chatRouter = require('./routers/chatRouter');
 const searchRouter = require('./routers/searchRouter');
 const categoryRouter = require('./routers/categoryRouter');
 const postRouter = require('./routers/postRouter');
-const branchRouter = require('./routers/branchRouter');
+const brandRouter = require('./routers/brandRouter');
 const commentRouter = require('./routers/commentRouter');
 
 app.use(express.json());
@@ -28,7 +28,7 @@ app.use('/api/chat',chatRouter.routes);
 app.use('/api/search',searchRouter.routes);
 app.use('/api/category',categoryRouter.routes);
 app.use('/api/post',postRouter.routes);
-app.use('/api/branch',branchRouter.routes);
+app.use('/api/brand',brandRouter.routes);
 app.use('/api/comment',commentRouter.routes);
 
 app.listen(PORT, () => {
