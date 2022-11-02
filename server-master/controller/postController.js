@@ -22,9 +22,9 @@ function sendUpdatePostNotifications(tokens, title, status) {
   sendNotifications(tokens, message);
 }
 
-async function getResultPost(user_id, status, category_id, search, page, res) {
+async function getResultPost(user_id,avatar, status, category_id, search, page, res) {
   var data;
-  // try {
+  try {
   if (
     status != null &&
     status !== "pending" &&
@@ -102,6 +102,7 @@ async function getResultPost(user_id, status, category_id, search, page, res) {
       doc.data().price,
       doc.data().description
     );
+    post['avatar'] = avatar;
     postArray.push(post);
   });
   return res.status(200).json({
@@ -109,11 +110,11 @@ async function getResultPost(user_id, status, category_id, search, page, res) {
     message: "Fetch post successfully",
     data: postArray,
   });
-  // } catch (error) {
-  //   return res
-  //     .status(500)
-  //     .json({ success: false, message: "Occur in server error" });
-  // }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
 }
 
 const getMyPost = async (req, res) => {
@@ -126,8 +127,9 @@ const getMyPost = async (req, res) => {
   var status = req.query.status;
   var category_id = req.query.category_id;
   var id = current.id;
+  var avatar = current.data().avatar;
 
-  getResultPost(id, status, category_id, null, page, res);
+  getResultPost(id,avatar, status, category_id, null, page, res);
 };
 
 const getPost = async (req, res) => {
@@ -136,9 +138,38 @@ const getPost = async (req, res) => {
   var category_id = req.query.category_id;
   var search = req.query.search;
   var status = req.query.status;
+  var user = await db.collection("user").doc(user_id).get();
+  var avatar = user.data().avatar;
+  console.log(avatar);
 
-  getResultPost(user_id, status, category_id, search, page, res);
+  getResultPost(user_id,avatar, status, category_id, search, page, res);
 };
+
+function createTitleArray(title) {
+  var array = [];
+  //cut continiously
+  for (let i = 1; i < title.length + 1; i++) {
+    array.push(title.substring(0, i));
+  }
+  // 2 char
+  for (let i = 0; i < title.length - 1; i++) {
+    array.push(title[i] + "" + title[i + 1]);
+    if (i < title.length - 2) {
+      array.push(title[i] + "" + title[i + 1] + "" + title[i + 2]);
+    }
+  }
+
+  newArray = array
+    .concat(title.match(/.{1,3}/g))
+    .concat(title.match(/.{1,4}/g))
+    .concat(title.split(" "))
+    .concat(title.split("-"))
+    .concat(title.split(""))
+    .filter(function (item, index, self) {
+      return item !== " " && index === self.indexOf(item);
+    });
+  return newArray;
+}
 
 async function queryPost(user_id, status, category_id, search, limit, start) {
   var data = db.collection("post");
@@ -152,7 +183,7 @@ async function queryPost(user_id, status, category_id, search, limit, start) {
     data = data.where("category_id", "==", category_id);
   }
   if (search) {
-    data = data.where("arrayTitle", "array-contains",search.toLowerCase());
+    data = data.where("arrayTitle", "array-contains", search.toLowerCase());
   }
   data = data.orderBy("create_at");
   if (start) {
@@ -247,6 +278,7 @@ const createPost = async (req, res) => {
           price: req.body.price,
           address: req.body.address,
           description: req.body.description,
+          arrayTitle: createTitleArray(req.body.title.toLowerCase()),
         };
         // add db
         try {
@@ -278,6 +310,7 @@ async function updateExtra(req, res, files) {
     const updatePost = new Object();
     if (req.body.title) {
       updatePost.title = req.body.title;
+      updatePost.arrayTitle = createTitleArray(req.body.title.toLowerCase());
     }
 
     if (req.body.brand_id) {

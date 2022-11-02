@@ -1,4 +1,5 @@
 const { admin, db, firebaseStorage } = require("../config/fbConfig");
+const User = require("../models/User");
 
 const isAdmin = require("../utils/CheckRole");
 const currentUser = require("../utils/CurrentUser");
@@ -33,8 +34,8 @@ async function updateExtra(req, res, file) {
       updateUser.address = req.body.address;
     }
 
-    if (req.body.fullname) {
-      updateUser.fullname = req.body.fullname;
+    if (req.body.fullName) {
+      updateUser.fullName = req.body.fullName;
     }
 
     if (req.body.birthday) {
@@ -42,7 +43,7 @@ async function updateExtra(req, res, file) {
     }
 
     if (file) {
-      updateUser.file = file;
+      updateUser.avatar = file;
     }
     const data = admin.auth().updateUser(id, {
       email: req.body.email,
@@ -186,7 +187,7 @@ const updateRole = async (req, res) => {
   }
 };
 
-const getUser = async (req, res) => {
+const getCurrentUser = async (req, res) => {
   try {
     const user = await currentUser();
     if (!user) {
@@ -195,14 +196,84 @@ const getUser = async (req, res) => {
         .json({ success: false, message: "Can't not find user" });
     }
     if (!user.exists) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     } else {
-      return res.status(200).json(user.data());
+      const result = user.data();
+      result["id"]= user.id;
+      return res.status(200).json({
+        success: true,
+        message: "Get user successfully",
+        data: result,
+      });
     }
   } catch (error) {
     return res
       .status(500)
       .json({ success: false, message: "Occur in server error" });
+  }
+};
+
+const getUserById = async (req, res) => {
+  var id = req.params.id;
+  try {
+    const user = await db.collection("user").doc(id).get();
+    if (user) {
+      const result = user.data();
+      result["id"]= id;
+      return res.status(200).json({
+        success: true,
+        message: "Get user successfully",
+        data: result,
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Get user failed" });
+    }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
+const getAllUser = async (req, res) => {
+  try {
+    const users = db.collection("user");
+    const data = await users.get();
+    const userArray = [];
+    if (data.empty) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Fetch user successful", data: [] });
+    }
+    data.forEach((doc) => {
+      const user = new User(
+        doc.id,
+        doc.data().name,
+        doc.data().fullName,
+        doc.data().email,
+        doc.data().birthday,
+        doc.data().avatar,
+        doc.data().phone,
+        doc.data().address,
+        doc.data().gender,
+        doc.data().role,
+        doc.data().fcmTokens
+      );
+      userArray.push(user);
+    });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Fetch user successful",
+        data: userArray,
+      });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error });
   }
 };
 
@@ -237,7 +308,9 @@ const updateFCMTokens = async (req, res) => {
 };
 
 module.exports = {
-  getUser,
+  getAllUser,
+  getCurrentUser,
+  getUserById,
   updateUser,
   updateRole,
   deleteUser,
