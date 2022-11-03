@@ -33,10 +33,11 @@ const signup = async (req, res) => {
       phone: req.body.phone,
       gender: req.body.gender,
       address: req.body.address,
-      fullname: req.body.fullName,
+      fullname: req.body.fullname,
       birthday: new Date(req.body.birthday).valueOf(),
       role: "user",
       fcmTokens: [],
+      avatar: null,
     };
     if (data) {
       const idToken = await firebase.auth().currentUser.getIdToken(true);
@@ -55,7 +56,7 @@ const signup = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message:error });
+      .json({ success: false, message: "Occur in server error" });
   }
 };
 

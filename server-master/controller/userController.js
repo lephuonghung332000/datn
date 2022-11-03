@@ -34,8 +34,8 @@ async function updateExtra(req, res, file) {
       updateUser.address = req.body.address;
     }
 
-    if (req.body.fullName) {
-      updateUser.fullName = req.body.fullName;
+    if (req.body.fullname) {
+      updateUser.fullname = req.body.fullname;
     }
 
     if (req.body.birthday) {
@@ -253,7 +253,7 @@ const getAllUser = async (req, res) => {
       const user = new User(
         doc.id,
         doc.data().name,
-        doc.data().fullName,
+        doc.data().fullname,
         doc.data().email,
         doc.data().birthday,
         doc.data().avatar,

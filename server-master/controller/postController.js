@@ -5,7 +5,7 @@ const currentUser = require("../utils/CurrentUser");
 
 const isAdmin = require("../utils/CheckRole");
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 2;
 
 function sendUpdatePostNotifications(tokens, title, status) {
   var message = "Tin đăng " + `${title}` + " của bạn";
@@ -22,7 +22,11 @@ function sendUpdatePostNotifications(tokens, title, status) {
   sendNotifications(tokens, message);
 }
 
-async function getResultPost(user_id,avatar, status, category_id, search, page, res) {
+function onlyUnique(value, index, self) {
+  return self.indexOf(value) === index;
+}
+
+async function getResultPost(user_id, status, category_id, search, page, res) {
   var data;
   try {
   if (
@@ -83,10 +87,25 @@ async function getResultPost(user_id,avatar, status, category_id, search, page, 
   }
   const postArray = [];
   if (data.empty) {
-    return res
-      .status(200)
-      .json({ success: true, message: "Fetch post successfully", data: [] });
+    return res.status(200).json({
+      success: true,
+      message: "Fetch post successfully",
+      data: [],
+    });
   }
+  var users = [];
+  const ids = data.docs
+    .map((doc) => {
+      return doc.data().user_id;
+    })
+    .filter(onlyUnique);
+  const futureUserDataGroup = ids.map(async (id) => {
+    var userData = (await db.collection("user").doc(id).get()).data();
+    userData["id"] = id;
+    return userData;
+  });
+  users = await Promise.all(futureUserDataGroup);
+
   data.forEach((doc) => {
     const post = new Post(
       doc.id,
@@ -102,9 +121,10 @@ async function getResultPost(user_id,avatar, status, category_id, search, page, 
       doc.data().price,
       doc.data().description
     );
-    if(avatar){
-      post['avatar'] = avatar;
-    }
+    post["avatar"] = users.find(function (e) {
+      return e.id == doc.data().user_id;
+    }).avatar;
+
     postArray.push(post);
   });
   return res.status(200).json({
@@ -129,9 +149,8 @@ const getMyPost = async (req, res) => {
   var status = req.query.status;
   var category_id = req.query.category_id;
   var id = current.id;
-  var avatar = current.data().avatar;
 
-  getResultPost(id,avatar, status, category_id, null, page, res);
+  getResultPost(id, status, category_id, null, page, res);
 };
 
 const getPost = async (req, res) => {
@@ -140,13 +159,8 @@ const getPost = async (req, res) => {
   var category_id = req.query.category_id;
   var search = req.query.search;
   var status = req.query.status;
-  var avatar;
-  if(user_id){
-    var user = await db.collection("user").doc(user_id).get();
-    avatar = user.data().avatar;
-  }
 
-  getResultPost(user_id,avatar, status, category_id, search, page, res);
+  getResultPost(user_id, status, category_id, search, page, res);
 };
 
 function createTitleArray(title) {
@@ -167,7 +181,10 @@ function createTitleArray(title) {
     .concat(title.match(/.{1,3}/g))
     .concat(title.match(/.{1,4}/g))
     .concat(title.split(" "))
+    .concat(title.split("+"))
     .concat(title.split("-"))
+    .concat(title.split("("))
+    .concat(title.split(")"))
     .concat(title.split(""))
     .filter(function (item, index, self) {
       return item !== " " && index === self.indexOf(item);
@@ -278,8 +295,8 @@ const createPost = async (req, res) => {
           create_at: new Date().valueOf(),
           update_at: new Date().valueOf(),
           status: "pending",
-          brand: req.body.brand_id,
-          price: req.body.price,
+          brand_id: req.body.brand_id,
+          price: parseInt(req.body.price),
           address: req.body.address,
           description: req.body.description,
           arrayTitle: createTitleArray(req.body.title.toLowerCase()),
