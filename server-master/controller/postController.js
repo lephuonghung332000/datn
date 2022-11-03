@@ -102,7 +102,9 @@ async function getResultPost(user_id,avatar, status, category_id, search, page, 
       doc.data().price,
       doc.data().description
     );
-    post['avatar'] = avatar;
+    if(avatar){
+      post['avatar'] = avatar;
+    }
     postArray.push(post);
   });
   return res.status(200).json({
@@ -138,9 +140,11 @@ const getPost = async (req, res) => {
   var category_id = req.query.category_id;
   var search = req.query.search;
   var status = req.query.status;
-  var user = await db.collection("user").doc(user_id).get();
-  var avatar = user.data().avatar;
-  console.log(avatar);
+  var avatar;
+  if(user_id){
+    var user = await db.collection("user").doc(user_id).get();
+    avatar = user.data().avatar;
+  }
 
   getResultPost(user_id,avatar, status, category_id, search, page, res);
 };
