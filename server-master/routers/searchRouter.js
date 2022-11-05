@@ -4,7 +4,7 @@ const {getAllHistorySearch} = require('../controller/searchController');
 
 const router = express.Router();
 
-router.get('/:id',userMiddleware, getAllHistorySearch);
+router.get('/',userMiddleware, getAllHistorySearch);
 
 module.exports = {
     routes: router

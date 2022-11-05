@@ -26,112 +26,149 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
-async function getResultPost(user_id, status, category_id, search, page, res) {
+async function getResultPost(
+  user_id,
+  status,
+  category_id,
+  province,
+  search,
+  price,
+  page,
+  res
+) {
   var data;
   try {
-  if (
-    status != null &&
-    status !== "pending" &&
-    status !== "accept" &&
-    status !== "reject"
-  ) {
-    return res.status(400).json({ succes: false, message: "No found status" });
-  }
-
-  if (page) {
-    // get page
-    page = parseInt(page);
-    if (page < 1) {
-      page = 1;
+    if (
+      status != null &&
+      status !== "pending" &&
+      status !== "accept" &&
+      status !== "reject"
+    ) {
+      return res
+        .status(400)
+        .json({ succes: false, message: "No found status" });
     }
-    if (page == 1) {
-      data = await queryPost(
-        user_id,
-        status,
-        category_id,
-        search,
-        PAGE_SIZE,
-        null
-      );
-    } else {
-      var start = (page - 1) * PAGE_SIZE;
 
-      const snapshot = await queryPost(
-        user_id,
-        status,
-        category_id,
-        search,
-        start,
-        null
-      );
-
-      if (snapshot.docs.length < start) {
-        data = [];
-      } else {
-        // Get the last document
-        var last = snapshot.docs[snapshot.docs.length - 1];
-
+    if (page) {
+      // get page
+      page = parseInt(page);
+      if (page < 1) {
+        page = 1;
+      }
+      if (page == 1) {
         data = await queryPost(
           user_id,
           status,
           category_id,
+          province,
           search,
+          price,
           PAGE_SIZE,
-          last.data().create_at
+          null
         );
+      } else {
+        var start = (page - 1) * PAGE_SIZE;
+
+        //get all document
+        const snapshot = await queryPost(
+          user_id,
+          status,
+          category_id,
+          province,
+          search,
+          price,
+          null,
+          null
+        );
+        const lengthSnapShot = snapshot.docs.length - 1;
+        if (lengthSnapShot < start) {
+          data = [];
+        } else {
+          // Get the last document
+          const prevSnapshot = await queryPost(
+            user_id,
+            status,
+            category_id,
+            province,
+            search,
+            price,
+            start,
+            null
+          );
+          var last = prevSnapshot.docs[prevSnapshot.docs.length - 1];
+          console.log(last.data().create_at);
+          data = await queryPost(
+            user_id,
+            status,
+            category_id,
+            province,
+            search,
+            price,
+            PAGE_SIZE,
+            last.data().create_at
+          );
+        }
       }
+      // don't pass page
+    } else {
+      data = await queryPost(
+        user_id,
+        status,
+        category_id,
+        province,
+        search,
+        price,
+        null,
+        null
+      );
     }
-    // don't pass page
-  } else {
-    data = await queryPost(user_id, status, category_id, search, null, null);
-  }
-  const postArray = [];
-  if (data.empty) {
+    const postArray = [];
+    if (data.empty) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetch post successfully",
+        data: [],
+      });
+    }
+    var users = [];
+    const ids = data.docs
+      .map((doc) => {
+        return doc.data().user_id;
+      })
+      .filter(onlyUnique);
+    const futureUserDataGroup = ids.map(async (id) => {
+      var userData = (await db.collection("user").doc(id).get()).data();
+      userData["id"] = id;
+      return userData;
+    });
+    users = await Promise.all(futureUserDataGroup);
+
+    data.forEach((doc) => {
+      const post = new Post(
+        doc.id,
+        doc.data().title,
+        doc.data().create_at,
+        doc.data().update_at,
+        doc.data().status,
+        doc.data().images,
+        doc.data().user_id,
+        doc.data().category_id,
+        doc.data().brand_id,
+        doc.data().address,
+        doc.data().price,
+        doc.data().description
+      );
+      post["avatar"] = users.find(function (e) {
+        return e.id == doc.data().user_id;
+      }).avatar;
+
+      postArray.push(post);
+    });
     return res.status(200).json({
       success: true,
       message: "Fetch post successfully",
-      data: [],
+      data: postArray,
     });
-  }
-  var users = [];
-  const ids = data.docs
-    .map((doc) => {
-      return doc.data().user_id;
-    })
-    .filter(onlyUnique);
-  const futureUserDataGroup = ids.map(async (id) => {
-    var userData = (await db.collection("user").doc(id).get()).data();
-    userData["id"] = id;
-    return userData;
-  });
-  users = await Promise.all(futureUserDataGroup);
-
-  data.forEach((doc) => {
-    const post = new Post(
-      doc.id,
-      doc.data().title,
-      doc.data().create_at,
-      doc.data().update_at,
-      doc.data().status,
-      doc.data().images,
-      doc.data().user_id,
-      doc.data().category_id,
-      doc.data().brand_id,
-      doc.data().address,
-      doc.data().price,
-      doc.data().description
-    );
-    post["avatar"] = users.find(function (e) {
-      return e.id == doc.data().user_id;
-    }).avatar;
-
-    postArray.push(post);
-  });
-  return res.status(200).json({
-    success: true,
-    message: "Fetch post successfully",
-    data: postArray,
-  });
   } catch (error) {
     return res
       .status(500)
@@ -150,17 +187,28 @@ const getMyPost = async (req, res) => {
   var category_id = req.query.category_id;
   var id = current.id;
 
-  getResultPost(id, status, category_id, null, page, res);
+  getResultPost(id, status, category_id, null, null, null, page, res);
 };
 
 const getPost = async (req, res) => {
   var user_id = req.params.id;
   var page = req.query.page;
   var category_id = req.query.category_id;
+  var province = req.query.province;
   var search = req.query.search;
   var status = req.query.status;
+  var price = req.query.price;
 
-  getResultPost(user_id, status, category_id, search, page, res);
+  getResultPost(
+    user_id,
+    status,
+    category_id,
+    province,
+    search,
+    price,
+    page,
+    res
+  );
 };
 
 function createTitleArray(title) {
@@ -192,7 +240,16 @@ function createTitleArray(title) {
   return newArray;
 }
 
-async function queryPost(user_id, status, category_id, search, limit, start) {
+async function queryPost(
+  user_id,
+  status,
+  category_id,
+  province,
+  search,
+  price,
+  limit,
+  start
+) {
   var data = db.collection("post");
   if (user_id) {
     data = data.where("user_id", "==", user_id);
@@ -203,10 +260,21 @@ async function queryPost(user_id, status, category_id, search, limit, start) {
   if (category_id) {
     data = data.where("category_id", "==", category_id);
   }
+  if (province) {
+    data = data.where("province", "==", province);
+  }
   if (search) {
     data = data.where("arrayTitle", "array-contains", search.toLowerCase());
   }
-  data = data.orderBy("create_at");
+  if (price) {
+    console.log(price);
+    if (price == "DESC") {
+      data = data.orderBy("price", "desc");
+    } else {
+      data = data.orderBy("price");
+    }
+  }
+  data = data.orderBy("create_at", "desc");
   if (start) {
     data = data.startAfter(start);
   }
@@ -292,8 +360,8 @@ const createPost = async (req, res) => {
           category_id: req.body.category_id,
           title: req.body.title,
           images: images,
-          create_at: new Date().valueOf(),
-          update_at: new Date().valueOf(),
+          create_at: new Date().getTime() / 1000,
+          update_at: new Date().getTime() / 1000,
           status: "pending",
           brand_id: req.body.brand_id,
           price: parseInt(req.body.price),
@@ -362,7 +430,7 @@ async function updateExtra(req, res, files) {
       updatePost.images = files;
     }
 
-    updatePost.update_at = new Date().valueOf();
+    updatePost.update_at = new Date().getTime() / 1000;
 
     const postDb = db.collection("post").doc(id);
     const response = await postDb.update(updatePost);

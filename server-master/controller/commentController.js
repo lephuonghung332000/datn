@@ -43,7 +43,7 @@ const getAllComment = async (req, res) => {
     }
     const commentArray = [];
     if (data.empty) {
-      return res.status(200).json([]);
+      return res.status(200).json({ success: true, data: [] });
     }
     data.forEach((doc) => {
       const comment = new Comment(
@@ -57,7 +57,7 @@ const getAllComment = async (req, res) => {
       );
       commentArray.push(comment);
     });
-    return res.status(200).json(commentArray);
+    return res.status(200).json({ success: true, data: commentArray });
   } catch (error) {
     return res
       .status(500)
@@ -136,8 +136,8 @@ const addComment = async (req, res) => {
         post_id: req.body.post_id,
         content: req.body.content,
         image: signedUrlArray[0],
-        create_at: new Date().valueOf(),
-        update_at: new Date().valueOf(),
+        create_at: new Date().getTime()/1000,
+        update_at: new Date().getTime()/1000,
       };
       const commentDb = db.collection("comment");
       const response = await commentDb.doc().set(newComment);
@@ -179,7 +179,7 @@ async function updateExtra(req, res, file) {
       updateComment.image = file;
     }
 
-    updateComment.update_at = new Date().valueOf();
+    updateComment.update_at = new Date().getTime()/1000;
 
     const commentDb = db.collection("comment").doc(id);
     const response = await commentDb.update(updateComment);
@@ -259,5 +259,5 @@ module.exports = {
   getAllComment,
   addComment,
   deleteComment,
-  updateComment
+  updateComment,
 };
