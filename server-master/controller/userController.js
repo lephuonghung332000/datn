@@ -39,7 +39,7 @@ async function updateExtra(req, res, file) {
     }
 
     if (req.body.birthday) {
-      updateUser.birthday = new Date(req.body.birthday).valueOf();
+      updateUser.birthday = (new Date(req.body.birthday).getTime()/1000);
     }
 
     if (file) {
@@ -261,7 +261,8 @@ const getAllUser = async (req, res) => {
         doc.data().address,
         doc.data().gender,
         doc.data().role,
-        doc.data().fcmTokens
+        doc.data().fcmTokens,
+        doc.data().create_at,
       );
       userArray.push(user);
     });

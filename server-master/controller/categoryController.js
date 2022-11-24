@@ -20,7 +20,8 @@ const getAllCategories = async (req, res) => {
       const category = new Category(
         doc.id,
         doc.data().name,
-        doc.data().thumbnail
+        doc.data().thumbnail,
+        doc.data().sub_thumbnail
       );
       categoryArray.push(category);
     });

@@ -14,7 +14,7 @@ const getAllHistorySearch = async (req, res) => {
     const searchs = db
       .collection("search_history")
       .where("user_id", "==", user_id)
-      .orderBy("create_at")
+      .orderBy("create_at","desc")
       .limit(10);
     const data = await searchs.get();
     const searchArray = [];
@@ -46,6 +46,44 @@ const getAllHistorySearch = async (req, res) => {
   // }
 };
 
+const addSearchHistory = async (req, res) => {
+  if (!req.body.key) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Need to field key" });
+  }
+
+  if (!req.body.user_id) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field user id" });
+  }
+  try {
+    const searchDb = db.collection("search_history");
+    const response = await searchDb
+      .doc()
+      .set({
+        key: req.body.key,
+        user_id: req.body.user_id,
+        create_at: new Date().getTime() / 1000,
+      });
+    if (response) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Add search history successfully" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Add search history failed" });
+    }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
 module.exports = {
   getAllHistorySearch,
+  addSearchHistory,
 };

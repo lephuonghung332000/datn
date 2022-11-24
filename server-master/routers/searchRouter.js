@@ -1,11 +1,15 @@
-const express = require('express')
-const userMiddleware = require('../middleware/author')
-const {getAllHistorySearch} = require('../controller/searchController');
+const express = require("express");
+const userMiddleware = require("../middleware/author");
+const {
+  getAllHistorySearch,
+  addSearchHistory,
+} = require("../controller/searchController");
 
 const router = express.Router();
 
-router.get('/',userMiddleware, getAllHistorySearch);
+router.get("/", userMiddleware, getAllHistorySearch);
+router.post("/addSearch", addSearchHistory);
 
 module.exports = {
-    routes: router
-}
+  routes: router,
+};

@@ -5,7 +5,7 @@ const currentUser = require("../utils/CurrentUser");
 
 const isAdmin = require("../utils/CheckRole");
 
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 4;
 
 function sendUpdatePostNotifications(tokens, title, status) {
   var message = "Tin đăng " + `${title}` + " của bạn";
@@ -32,143 +32,148 @@ async function getResultPost(
   category_id,
   province,
   search,
-  price,
+  create_at,
   page,
   res
 ) {
   var data;
+  var lengthPost;
   try {
-    if (
-      status != null &&
-      status !== "pending" &&
-      status !== "accept" &&
-      status !== "reject"
-    ) {
-      return res
-        .status(400)
-        .json({ succes: false, message: "No found status" });
+  if (
+    status != null &&
+    status !== "pending" &&
+    status !== "accept" &&
+    status !== "reject"
+  ) {
+    return res.status(400).json({ succes: false, message: "No found status" });
+  }
+
+  if (page) {
+    // get page
+    page = parseInt(page);
+    if (page < 1) {
+      page = 1;
     }
-
-    if (page) {
-      // get page
-      page = parseInt(page);
-      if (page < 1) {
-        page = 1;
-      }
-      if (page == 1) {
-        data = await queryPost(
-          user_id,
-          status,
-          category_id,
-          province,
-          search,
-          price,
-          PAGE_SIZE,
-          null
-        );
-      } else {
-        var start = (page - 1) * PAGE_SIZE;
-
-        //get all document
-        const snapshot = await queryPost(
-          user_id,
-          status,
-          category_id,
-          province,
-          search,
-          price,
-          null,
-          null
-        );
-        const lengthSnapShot = snapshot.docs.length - 1;
-        if (lengthSnapShot < start) {
-          data = [];
-        } else {
-          // Get the last document
-          const prevSnapshot = await queryPost(
-            user_id,
-            status,
-            category_id,
-            province,
-            search,
-            price,
-            start,
-            null
-          );
-          var last = prevSnapshot.docs[prevSnapshot.docs.length - 1];
-          console.log(last.data().create_at);
-          data = await queryPost(
-            user_id,
-            status,
-            category_id,
-            province,
-            search,
-            price,
-            PAGE_SIZE,
-            last.data().create_at
-          );
-        }
-      }
-      // don't pass page
-    } else {
+    if (page == 1) {
       data = await queryPost(
         user_id,
         status,
         category_id,
         province,
         search,
-        price,
-        null,
+        create_at,
+        PAGE_SIZE,
         null
       );
-    }
-    const postArray = [];
-    if (data.empty) {
-      return res.status(200).json({
-        success: true,
-        message: "Fetch post successfully",
-        data: [],
-      });
-    }
-    var users = [];
-    const ids = data.docs
-      .map((doc) => {
-        return doc.data().user_id;
-      })
-      .filter(onlyUnique);
-    const futureUserDataGroup = ids.map(async (id) => {
-      var userData = (await db.collection("user").doc(id).get()).data();
-      userData["id"] = id;
-      return userData;
-    });
-    users = await Promise.all(futureUserDataGroup);
+    } else {
+      var start = (page - 1) * PAGE_SIZE;
 
-    data.forEach((doc) => {
-      const post = new Post(
-        doc.id,
-        doc.data().title,
-        doc.data().create_at,
-        doc.data().update_at,
-        doc.data().status,
-        doc.data().images,
-        doc.data().user_id,
-        doc.data().category_id,
-        doc.data().brand_id,
-        doc.data().address,
-        doc.data().price,
-        doc.data().description
+      const snapshot = await queryPost(
+        user_id,
+        status,
+        category_id,
+        province,
+        search,
+        create_at,
+        start,
+        null
       );
-      post["avatar"] = users.find(function (e) {
-        return e.id == doc.data().user_id;
-      }).avatar;
 
-      postArray.push(post);
-    });
+      if (snapshot.docs.length < start) {
+        data = [];
+      } else {
+        // Get the last document
+        var last = snapshot.docs[snapshot.docs.length - 1];
+        data = await queryPost(
+          user_id,
+          status,
+          category_id,
+          province,
+          search,
+          create_at,
+          PAGE_SIZE,
+          last.data().create_at
+        );
+      }
+    }
+    const total = await queryPost(
+      user_id,
+      status,
+      category_id,
+      province,
+      search,
+      create_at,
+      null,
+      null
+    );
+    lengthPost = total.docs.length;
+    // don't pass page
+  } else {
+    data = await queryPost(
+      user_id,
+      status,
+      category_id,
+      province,
+      search,
+      create_at,
+      null,
+      null
+    );
+    lengthPost = data.docs.length;
+  }
+  const postArray = [];
+  if (data.empty || data.docs == undefined) {
     return res.status(200).json({
       success: true,
       message: "Fetch post successfully",
-      data: postArray,
+      total:0,
+      data: [],
     });
+  }
+  var users = [];
+  const ids = data.docs
+    .map((doc) => {
+      return doc.data().user_id;
+    })
+    .filter(onlyUnique);
+  const futureUserDataGroup = ids.map(async (id) => {
+    var userData = (await db.collection("user").doc(id).get()).data();
+    userData["id"] = id;
+    return userData;
+  });
+  users = await Promise.all(futureUserDataGroup);
+
+  data.forEach((doc) => {
+    const post = new Post(
+      doc.id,
+      doc.data().title,
+      doc.data().create_at,
+      doc.data().update_at,
+      doc.data().status,
+      doc.data().images,
+      doc.data().user_id,
+      doc.data().category_id,
+      doc.data().brand_id,
+      doc.data().address,
+      doc.data().price,
+      doc.data().description
+    );
+    const selectedUser = users.find(function (e) {
+      return e.id == doc.data().user_id;
+    });
+    post["avatar"] = selectedUser.avatar;
+    post["name"] = selectedUser.name;
+    post["phone"] = selectedUser.phone;
+    post["email"] = selectedUser.email;
+    post["date_join"] = selectedUser.create_at;
+    postArray.push(post);
+  });
+  return res.status(200).json({
+    success: true,
+    message: "Fetch post successfully",
+    total: lengthPost,
+    data: postArray,
+  });
   } catch (error) {
     return res
       .status(500)
@@ -197,7 +202,7 @@ const getPost = async (req, res) => {
   var province = req.query.province;
   var search = req.query.search;
   var status = req.query.status;
-  var price = req.query.price;
+  var create_at = req.query.create_at;
 
   getResultPost(
     user_id,
@@ -205,7 +210,7 @@ const getPost = async (req, res) => {
     category_id,
     province,
     search,
-    price,
+    create_at,
     page,
     res
   );
@@ -246,7 +251,7 @@ async function queryPost(
   category_id,
   province,
   search,
-  price,
+  create_at,
   limit,
   start
 ) {
@@ -266,15 +271,12 @@ async function queryPost(
   if (search) {
     data = data.where("arrayTitle", "array-contains", search.toLowerCase());
   }
-  if (price) {
-    console.log(price);
-    if (price == "DESC") {
-      data = data.orderBy("price", "desc");
-    } else {
-      data = data.orderBy("price");
-    }
+  if (create_at == "ASC") {
+    data = data.orderBy("create_at");
+  } else {
+    data = data.orderBy("create_at", "desc");
   }
-  data = data.orderBy("create_at", "desc");
+
   if (start) {
     data = data.startAfter(start);
   }
@@ -326,6 +328,7 @@ const createPost = async (req, res) => {
       .status(400)
       .json({ succes: false, message: "Missing field user id" });
   }
+
   const images = [];
   files.forEach(async (file) => {
     // Format the filename
@@ -360,14 +363,15 @@ const createPost = async (req, res) => {
           category_id: req.body.category_id,
           title: req.body.title,
           images: images,
-          create_at: new Date().getTime() / 1000,
-          update_at: new Date().getTime() / 1000,
+          create_at: (new Date().getTime() / 1000),
+          update_at: (new Date().getTime() / 1000),
           status: "pending",
           brand_id: req.body.brand_id,
-          price: parseInt(req.body.price),
+          price: (req.body.price),
           address: req.body.address,
           description: req.body.description,
           arrayTitle: createTitleArray(req.body.title.toLowerCase()),
+          province: req.body.address.split(",")[2],
         };
         // add db
         try {
@@ -430,7 +434,7 @@ async function updateExtra(req, res, files) {
       updatePost.images = files;
     }
 
-    updatePost.update_at = new Date().getTime() / 1000;
+    updatePost.update_at = (new Date().getTime() / 1000);
 
     const postDb = db.collection("post").doc(id);
     const response = await postDb.update(updatePost);
