@@ -25,13 +25,13 @@ const adminBro = new AdminBro({
   rootPath: "/admin",
   resources: [
     UserSchema,
+    AdsSchema,
     BrandSchema,
     CategorySchema,
     CommentSchema,
     HintChatSchema,
-    SearchHistorySchema,
-    PostSchema,
-    AdsSchema
+    // SearchHistorySchema,
+    PostSchema
   ],
 });
 

@@ -11,8 +11,6 @@ const BrandSchema = require("./resources/brand_schema");
 const CategorySchema = require("./resources/category_schema");
 const CommentSchema = require("./resources/comment_schema");
 const HintChatSchema = require("./resources/hint_chat_schema");
-const SearchHistorySchema = require("./resources/search_history_schema");
-const PostSchema = require("./resources/post_schema");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -25,13 +23,11 @@ const adminBro = new AdminBro({
   rootPath: "/admin",
   resources: [
     UserSchema,
+    AdsSchema,
     BrandSchema,
     CategorySchema,
     CommentSchema,
-    HintChatSchema,
-    SearchHistorySchema,
-    PostSchema,
-    AdsSchema
+    HintChatSchema
   ],
 });
 

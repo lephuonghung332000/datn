@@ -4,6 +4,11 @@ const User = require("../models/User");
 const isAdmin = require("../utils/CheckRole");
 const currentUser = require("../utils/CurrentUser");
 
+function convertToDateTime(date) {
+  const dateSplit = date.split("/");
+  return `${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]}`;
+}
+
 async function updateExtra(req, res, file) {
   const user = await currentUser();
   if (!user) {
@@ -13,57 +18,55 @@ async function updateExtra(req, res, file) {
   }
   const user_id = user.id;
   // try {
-    const updateUser = new User();
-    if (req.body.email) {
-      updateUser.email = req.body.email;
-    }
+  const updateUser = new Object();
+  if (req.body.email) {
+    updateUser.email = req.body.email;
+  }
 
-    if (req.body.name) {
-      updateUser.name = req.body.name;
-    }
+  if (req.body.name) {
+    updateUser.name = req.body.name;
+  }
 
-    if (req.body.phone) {
-      updateUser.phone = req.body.phone;
-    }
+  if (req.body.phone) {
+    updateUser.phone = req.body.phone;
+  }
 
-    if (req.body.gender) {
-      updateUser.gender = req.body.gender;
-    }
+  if (req.body.gender) {
+    updateUser.gender = (req.body.gender === 'true');
+  }
 
-    if (req.body.address) {
-      updateUser.address = req.body.address;
-    }
+  if (req.body.address) {
+    updateUser.address = req.body.address;
+  }
 
-    if (req.body.fullname) {
-      updateUser.fullname = req.body.fullname;
-    }
+  if (req.body.fullname) {
+    updateUser.fullname = req.body.fullname;
+  }
 
-    if (req.body.birthday) {
-      updateUser.birthday = (Date(req.body.birthday).getTime()/1000);
-    }
+  if (req.body.birthday) {
+    updateUser.birthday =
+      new Date(convertToDateTime(req.body.birthday)).getTime() / 1000;
+  }
 
-    if (file) {
-      updateUser.avatar = file;
-    }
-    const data = admin.auth().updateUser(user_id, {
-      email: req.body.email,
-    });
-    if (data) {
-      const user = db.collection("user").doc(user_id);
-      const response = await user.update(updateUser);
-      if (response) {
-        return res
-          .status(200)
-          .json({ success: true, message: "Update profile successfully" });
-      } else {
-        return res
-        
-          .status(400)
-          .json({ success: false, message: "Update failed" });
-      }
+  if (file) {
+    updateUser.avatar = file;
+  }
+  const data = admin.auth().updateUser(user_id, {
+    email: req.body.email,
+  });
+  if (data) {
+    const user = db.collection("user").doc(user_id);
+    const response = await user.update(updateUser);
+    if (response) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Update profile successfully" });
     } else {
       return res.status(400).json({ success: false, message: "Update failed" });
     }
+  } else {
+    return res.status(400).json({ success: false, message: "Update failed" });
+  }
   // } catch (e) {
   //   return res
   //     .status(500)
@@ -203,7 +206,7 @@ const getCurrentUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     } else {
       const result = user.data();
-      result["id"]= user.id;
+      result["id"] = user.id;
       return res.status(200).json({
         success: true,
         message: "Get user successfully",
@@ -223,7 +226,7 @@ const getUserById = async (req, res) => {
     const user = await db.collection("user").doc(id).get();
     if (user) {
       const result = user.data();
-      result["id"]= id;
+      result["id"] = id;
       return res.status(200).json({
         success: true,
         message: "Get user successfully",
@@ -264,17 +267,15 @@ const getAllUser = async (req, res) => {
         doc.data().gender,
         doc.data().role,
         doc.data().fcmTokens,
-        doc.data().create_at,
+        doc.data().create_at
       );
       userArray.push(user);
     });
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Fetch user successful",
-        data: userArray,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Fetch user successful",
+      data: userArray,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error });
   }

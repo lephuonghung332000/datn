@@ -31,7 +31,7 @@ const adminBro = new AdminBro({
     HintChatSchema,
     SearchHistorySchema,
     PostSchema,
-    AdsSchema
+    AdsSchema,
   ],
 });
 

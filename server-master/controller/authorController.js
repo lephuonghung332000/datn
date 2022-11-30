@@ -1,7 +1,5 @@
-
 const { firebase, admin, db } = require("../config/fbConfig");
 const dayjs = require("dayjs");
-
 //Checks that the email passed in is an existing user
 async function checkIfUserWithEmailExists(email) {
   const userCollectionRef = admin.firestore().collection("user");
@@ -10,6 +8,11 @@ async function checkIfUserWithEmailExists(email) {
     .get();
 
   return querySnapshot.size >= 1;
+}
+
+function convertToDateTime(date) {
+  const dateSplit = date.split("/");
+  return `${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]}`;
 }
 
 const signup = async (req, res) => {
@@ -29,7 +32,6 @@ const signup = async (req, res) => {
     const data = await firebase
       .auth()
       .createUserWithEmailAndPassword(req.body.email, req.body.password);
-    const birthdayFormat = Date.parse(`${req.body.birthday}`);
     const newUser = {
       email: req.body.email,
       name: req.body.name,
@@ -37,16 +39,13 @@ const signup = async (req, res) => {
       gender: req.body.gender,
       address: req.body.address,
       fullname: req.body.fullname,
-      birthday: birthdayFormat,
+      birthday: new Date(convertToDateTime(req.body.birthday)).getTime() / 1000,
       createAt: new Date().getTime() / 1000,
       role: "user",
       fcmTokens: [],
       avatar:
         "https://firebasestorage.googleapis.com/v0/b/advertising-classified.appspot.com/o/user%2Favatar_default.png?alt=media&token=ecdcff38-dea8-4ffe-acfe-513532823d8d",
     };
-    console.log(req.body.birthday);
-    console.log(dayjs);
-    console.log(Math.floor(new Date(req.body.birthday).getTime() / 1000));
     if (data) {
       const idToken = await firebase.auth().currentUser.getIdToken(true);
       const usersDb = db.collection("user");

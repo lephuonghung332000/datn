@@ -7,12 +7,6 @@ const AdminBroFirebase = require("@tirrilee/admin-bro-firebase");
 const AdminBro = require("admin-bro");
 const UserSchema = require("./resources/user_schema");
 const AdsSchema = require("./resources/ads_schema");
-const BrandSchema = require("./resources/brand_schema");
-const CategorySchema = require("./resources/category_schema");
-const CommentSchema = require("./resources/comment_schema");
-const HintChatSchema = require("./resources/hint_chat_schema");
-const SearchHistorySchema = require("./resources/search_history_schema");
-const PostSchema = require("./resources/post_schema");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -23,16 +17,7 @@ const app = express();
 AdminBro.registerAdapter(AdminBroFirebase.FirestoreAdapter);
 const adminBro = new AdminBro({
   rootPath: "/admin",
-  resources: [
-    UserSchema,
-    BrandSchema,
-    CategorySchema,
-    CommentSchema,
-    HintChatSchema,
-    SearchHistorySchema,
-    PostSchema,
-    AdsSchema
-  ],
+  resources: [UserSchema, AdsSchema],
 });
 
 const authorRouter = require("./routers/authorRouter");
@@ -57,7 +42,8 @@ const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
     return null;
   },
   cookiePassword: "some-secret-password-used-to-secure-cookie",
-  cookieName: "adminbro",
+  cookieName: 'adminbro',
+  cookiePassword: 'somepassword',
 });
 
 app.use(express.json());
