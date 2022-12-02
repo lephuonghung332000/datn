@@ -45,6 +45,7 @@ const postRouter = require("./routers/postRouter");
 const brandRouter = require("./routers/brandRouter");
 const commentRouter = require("./routers/commentRouter");
 const countryRouter = require("./routers/countryRouter");
+const notificationRouter = require("./routers/notificationRouter");
 const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
   authenticate: async (email, password) => {
     const user = await firebase
@@ -76,6 +77,7 @@ app.use("/api/post", postRouter.routes);
 app.use("/api/brand", brandRouter.routes);
 app.use("/api/comment", commentRouter.routes);
 app.use("/api/province", countryRouter.routes);
+app.use("/api/notification", notificationRouter.routes);
 app.use(adminBro.options.rootPath, loginAdminRouter);
 
 app.listen(PORT, () => {

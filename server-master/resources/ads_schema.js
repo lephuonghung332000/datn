@@ -1,7 +1,7 @@
 const { db } = require("../config/fbConfig");
 
 module.exports = {
-  collection: db.collection("ads"),
+  collection: db.collection('advertising'),
   schema: {
     content: "string",
     image: "string",
@@ -9,6 +9,6 @@ module.exports = {
     url: "string",
   },
   options: {
-    listProperties: ["id", "title", "content","image","url",],
+    listProperties: ["id", "title", "content", "image", "url"],
   },
 };

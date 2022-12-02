@@ -1,5 +1,4 @@
 const { firebase, admin, db } = require("../config/fbConfig");
-const dayjs = require("dayjs");
 //Checks that the email passed in is an existing user
 async function checkIfUserWithEmailExists(email) {
   const userCollectionRef = admin.firestore().collection("user");
@@ -69,8 +68,6 @@ const signup = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  console.log(req.body.email);
-  console.log(req.body.password);
   if (!req.body.email || !req.body.password) {
     return res
       .status(400)
@@ -89,7 +86,7 @@ const login = async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message: "Occur in server error" });
+      .json({ success: false, message: error });
   }
 };
 

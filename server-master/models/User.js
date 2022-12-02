@@ -1,6 +1,6 @@
 class User {
   constructor(id, name, fullname, email,
-      birthday, avatar, phone, address, gender,role,fcmTokens,create_at) {
+      birthday, avatar, phone, address, gender,role,create_at) {
           this.id = id;
           this.name = name;
           this.fullname = fullname;
@@ -11,7 +11,6 @@ class User {
           this.address = address;
           this.gender = gender;
           this.role = role;
-          this.fcmTokens = fcmTokens;
           this.create_at = create_at;
   }
 }

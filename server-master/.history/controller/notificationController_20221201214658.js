@@ -65,7 +65,6 @@ const getAllNotifications = async (req, res) => {
         doc.data().isRead,
         doc.data().content,
         doc.data().user_ids,
-        doc.data().isNew,
         doc.data().createAt
       );
       notificationsArray.push(notification);
@@ -99,7 +98,6 @@ async function queryNotification(user_id, limit, start) {
 }
 
 const updateReadNotification = async (req, res) => {
-  var id = req.params.id;
   try {
     const commentDb = db.collection("notification").doc(id);
     const response = await commentDb.update({ isRead: true });
@@ -151,7 +149,6 @@ const deleteFcmTokens = async (req, res) => {
       .json({ success: false, message: "Occur in server error" });
   }
 };
-
 
 const updateFcmTokens = async (req, res) => {
   if (!req.body.token) {

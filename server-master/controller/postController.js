@@ -7,19 +7,19 @@ const isAdmin = require("../utils/CheckRole");
 
 const PAGE_SIZE = 4;
 
-function sendUpdatePostNotifications(tokens, title, status) {
-  var message = "Tin đăng " + `${title}` + " của bạn";
+function sendUpdatePostNotifications(title, status) {
+  var message = "Tin đăng";
   switch (status) {
     case "reject":
-      message += " đã bị từ chối";
+      message += " của bạn đã bị từ chối";
       break;
     case "accept":
-      message += " đã được duyệt";
+      message += " của bạn đã được duyệt";
       break;
     default:
-    // code block
+      message += " của bạn đang chờ duyệt";
   }
-  sendNotifications(tokens, message);
+  sendNotifications(message, title, "post");
 }
 
 function onlyUnique(value, index, self) {
@@ -38,52 +38,25 @@ async function getResultPost(
 ) {
   var data;
   var lengthPost;
-  // try {
-  if (
-    status != null &&
-    status !== "pending" &&
-    status !== "accept" &&
-    status !== "reject"
-  ) {
-    return res.status(400).json({ succes: false, message: "No found status" });
-  }
-
-  if (page) {
-    // get page
-    page = parseInt(page);
-    if (page < 1) {
-      page = 1;
+  try {
+    if (
+      status != null &&
+      status !== "pending" &&
+      status !== "accept" &&
+      status !== "reject"
+    ) {
+      return res
+        .status(400)
+        .json({ succes: false, message: "No found status" });
     }
-    if (page == 1) {
-      data = await queryPost(
-        user_id,
-        status,
-        category_id,
-        province,
-        search,
-        create_at,
-        PAGE_SIZE,
-        null
-      );
-    } else {
-      var start = (page - 1) * PAGE_SIZE;
 
-      const snapshot = await queryPost(
-        user_id,
-        status,
-        category_id,
-        province,
-        search,
-        create_at,
-        start,
-        null
-      );
-
-      if (snapshot.docs.length < start) {
-        data = [];
-      } else {
-        // Get the last document
-        var last = snapshot.docs[snapshot.docs.length - 1];
+    if (page) {
+      // get page
+      page = parseInt(page);
+      if (page < 1) {
+        page = 1;
+      }
+      if (page == 1) {
         data = await queryPost(
           user_id,
           status,
@@ -92,93 +65,122 @@ async function getResultPost(
           search,
           create_at,
           PAGE_SIZE,
-          last.data().create_at
+          null
         );
+      } else {
+        var start = (page - 1) * PAGE_SIZE;
+
+        const snapshot = await queryPost(
+          user_id,
+          status,
+          category_id,
+          province,
+          search,
+          create_at,
+          start,
+          null
+        );
+
+        if (snapshot.docs.length < start) {
+          data = [];
+        } else {
+          // Get the last document
+          var last = snapshot.docs[snapshot.docs.length - 1];
+          data = await queryPost(
+            user_id,
+            status,
+            category_id,
+            province,
+            search,
+            create_at,
+            PAGE_SIZE,
+            last.data().create_at
+          );
+        }
       }
+      const total = await queryPost(
+        user_id,
+        status,
+        category_id,
+        province,
+        search,
+        create_at,
+        null,
+        null
+      );
+      lengthPost = total.docs.length;
+      // don't pass page
+    } else {
+      data = await queryPost(
+        user_id,
+        status,
+        category_id,
+        province,
+        search,
+        create_at,
+        null,
+        null
+      );
+      lengthPost = data.docs.length;
     }
-    const total = await queryPost(
-      user_id,
-      status,
-      category_id,
-      province,
-      search,
-      create_at,
-      null,
-      null
-    );
-    lengthPost = total.docs.length;
-    // don't pass page
-  } else {
-    data = await queryPost(
-      user_id,
-      status,
-      category_id,
-      province,
-      search,
-      create_at,
-      null,
-      null
-    );
-    lengthPost = data.docs.length;
-  }
-  const postArray = [];
-  if (data.empty || data.docs == undefined) {
+    const postArray = [];
+    if (data.empty || data.docs == undefined) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetch post successfully",
+        total: 0,
+        data: [],
+      });
+    }
+    var users = [];
+    const ids = data.docs
+      .map((doc) => {
+        return doc.data().user_id;
+      })
+      .filter(onlyUnique);
+    const futureUserDataGroup = ids.map(async (id) => {
+      var userData = (await db.collection("user").doc(id).get()).data();
+      userData["id"] = id;
+      return userData;
+    });
+    users = await Promise.all(futureUserDataGroup);
+
+    data.forEach((doc) => {
+      const post = new Post(
+        doc.id,
+        doc.data().title,
+        doc.data().create_at,
+        doc.data().update_at,
+        doc.data().status,
+        doc.data().images,
+        doc.data().user_id,
+        doc.data().category_id,
+        doc.data().brand_id,
+        doc.data().address,
+        doc.data().price,
+        doc.data().description
+      );
+      const selectedUser = users.find(function (e) {
+        return e.id == doc.data().user_id;
+      });
+      post["avatar"] = selectedUser.avatar;
+      post["name"] = selectedUser.name;
+      post["phone"] = selectedUser.phone;
+      post["email"] = selectedUser.email;
+      post["date_join"] = selectedUser.create_at;
+      postArray.push(post);
+    });
     return res.status(200).json({
       success: true,
       message: "Fetch post successfully",
-      total: 0,
-      data: [],
+      total: lengthPost,
+      data: postArray,
     });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
   }
-  var users = [];
-  const ids = data.docs
-    .map((doc) => {
-      return doc.data().user_id;
-    })
-    .filter(onlyUnique);
-  const futureUserDataGroup = ids.map(async (id) => {
-    var userData = (await db.collection("user").doc(id).get()).data();
-    userData["id"] = id;
-    return userData;
-  });
-  users = await Promise.all(futureUserDataGroup);
-
-  data.forEach((doc) => {
-    const post = new Post(
-      doc.id,
-      doc.data().title,
-      doc.data().create_at,
-      doc.data().update_at,
-      doc.data().status,
-      doc.data().images,
-      doc.data().user_id,
-      doc.data().category_id,
-      doc.data().brand_id,
-      doc.data().address,
-      doc.data().price,
-      doc.data().description
-    );
-    const selectedUser = users.find(function (e) {
-      return e.id == doc.data().user_id;
-    });
-    post["avatar"] = selectedUser.avatar;
-    post["name"] = selectedUser.name;
-    post["phone"] = selectedUser.phone;
-    post["email"] = selectedUser.email;
-    post["date_join"] = selectedUser.create_at;
-    postArray.push(post);
-  });
-  return res.status(200).json({
-    success: true,
-    message: "Fetch post successfully",
-    total: lengthPost,
-    data: postArray,
-  });
-  // } catch (error) {
-  //   return res
-  //     .status(500)
-  //     .json({ success: false, message: "Occur in server error" });
-  // }
 }
 
 const getMyPost = async (req, res) => {
@@ -346,8 +348,7 @@ const createPost = async (req, res) => {
       },
     });
 
-    blobWriter.on("error", (err) => {
-    });
+    blobWriter.on("error", (err) => {});
 
     blobWriter.on("finish", async () => {
       const options = {
@@ -375,7 +376,7 @@ const createPost = async (req, res) => {
           province: req.body.address.split(",")[2],
         };
         // add db
-        // try {
+        try {
           const postDb = db.collection("post");
           const response = await postDb.doc().set(newPost);
 
@@ -388,11 +389,11 @@ const createPost = async (req, res) => {
               .status(400)
               .json({ success: false, message: "Add post failed" });
           }
-        // } catch (e) {
-        //   return res
-        //     .status(500)
-        //     .json({ success: false, message: "Occur in server error" });
-        // }
+        } catch (e) {
+          return res
+            .status(500)
+            .json({ success: false, message: "Occur in server error" });
+        }
       }
     });
     blobWriter.end(file.buffer);
@@ -498,41 +499,37 @@ const updatePost = async (req, res) => {
 const updateStatusPost = async (req, res) => {
   const id = req.params.id;
   const status = req.body.status;
-  try {
-    const checkAdmin = await isAdmin();
-    if (!checkAdmin) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Only admin can do it" });
-    }
-    if (status !== "pending" && status !== "accept" && status !== "reject") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Status is not exist" });
-    }
-    const response = await db
-      .collection("post")
-      .doc(id)
-      .update({ status: status });
-    if (response) {
-      const title = await db.collection("post").doc(id).get().title;
-      const user = await currentUser();
-      if (user) {
-        sendUpdatePostNotifications(user.fcmTokens, title, status);
-      }
-      return res
-        .status(200)
-        .json({ success: true, message: "Update status successfully" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Update status failed" });
-    }
-  } catch (e) {
+  // try {
+  const checkAdmin = await isAdmin();
+  if (!checkAdmin) {
     return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
+      .status(400)
+      .json({ success: false, message: "Only admin can do it" });
   }
+  if (status !== "pending" && status !== "accept" && status !== "reject") {
+    return res
+      .status(400)
+      .json({ success: false, message: "Status is not exist" });
+  }
+  const data = db.collection("post").doc(id);
+  const response = await data.update({ status: status });
+  if (response) {
+    const postData = await data.get();
+    const title = postData.data().title;
+    sendUpdatePostNotifications(title, status);
+    return res
+      .status(200)
+      .json({ success: true, message: "Update status successfully" });
+  } else {
+    return res
+      .status(400)
+      .json({ success: false, message: "Update status failed" });
+  }
+  // } catch (e) {
+  //   return res
+  //     .status(500)
+  //     .json({ success: false, message: "Occur in server error" });
+  // }
 };
 
 const deletePost = async (req, res) => {
