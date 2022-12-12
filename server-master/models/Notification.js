@@ -1,5 +1,5 @@
 class Notification {
-  constructor(id, title, type, isRead, content, user_id,isNew, createAt) {
+  constructor(id, title, type, isRead, content, user_id,isNew, create_at) {
     this.id = id;
     this.title = title;
     this.type = type;
@@ -7,7 +7,7 @@ class Notification {
     this.content = content;
     this.user_id = user_id;
     this.isNew = isNew;
-    this.createAt = createAt;
+    this.create_at = create_at;
   }
 }
 

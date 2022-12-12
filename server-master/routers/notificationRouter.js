@@ -1,18 +1,21 @@
 const express = require("express");
-const userMiddleware = require("../middleware/author");
 const {
   getAllNotifications,
   updateReadNotification,
   deleteFcmTokens,
   updateFcmTokens,
+  getUnreadNotifications,
+  updateAllNewNotification
 } = require("../controller/notificationController");
 
 const router = express.Router();
 
 router.get("/", getAllNotifications);
-router.patch("/read/:id", userMiddleware, updateReadNotification);
-router.post("/updateFCMTokens", userMiddleware, updateFcmTokens);
-router.delete("/removeFcmToken/:token", userMiddleware, deleteFcmTokens);
+router.get("/unread", getUnreadNotifications);
+router.patch("/unread/update", updateAllNewNotification);
+router.patch("/read/:id", updateReadNotification);
+router.post("/updateFCMTokens", updateFcmTokens);
+router.delete("/removeFcmToken/:token", deleteFcmTokens);
 
 module.exports = {
   routes: router,

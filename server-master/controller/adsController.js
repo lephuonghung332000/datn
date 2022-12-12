@@ -33,7 +33,7 @@ const getAllAds = async (req, res) => {
 };
 
 function sendCreateAds(body) {
-  sendNotifications(body,null, "ads");
+  sendNotifications(body,null, "ads",null);
 }
 
 const createAds = async (req, res) => {

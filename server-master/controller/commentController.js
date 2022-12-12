@@ -1,7 +1,7 @@
 const { db, firebaseStorage } = require("../config/fbConfig");
 const Comment = require("../models/Comment");
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 6;
 
 const getAllComment = async (req, res) => {
   var post_id = req.params.id;

@@ -2,7 +2,7 @@ const { db, firebaseStorage } = require("../config/fbConfig");
 const currentUser = require("../utils/CurrentUser");
 
 const Notification = require("../models/Notification");
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 10;
 
 const getAllNotifications = async (req, res) => {
   var page = req.query.page;
@@ -56,7 +56,6 @@ const getAllNotifications = async (req, res) => {
     }
     var allNotifications = await queryNotification(user_id, null, null);
     lengthNotification = allNotifications.docs.length;
-    console.log(data.docs.length);
     data.forEach((doc) => {
       const notification = new Notification(
         doc.id,
@@ -64,9 +63,9 @@ const getAllNotifications = async (req, res) => {
         doc.data().type,
         doc.data().isRead,
         doc.data().content,
-        doc.data().user_ids,
+        doc.data().user_id,
         doc.data().isNew,
-        doc.data().createAt
+        doc.data().create_at
       );
       notificationsArray.push(notification);
     });
@@ -86,7 +85,7 @@ const getAllNotifications = async (req, res) => {
 async function queryNotification(user_id, limit, start) {
   var data = db.collection("notification");
   if (user_id) {
-    data = data.where("user_ids", "array-contains", user_id);
+    data = data.where("user_id", "==", user_id);
   }
   data = data.orderBy("create_at", "desc");
   if (start) {
@@ -101,8 +100,8 @@ async function queryNotification(user_id, limit, start) {
 const updateReadNotification = async (req, res) => {
   var id = req.params.id;
   try {
-    const commentDb = db.collection("notification").doc(id);
-    const response = await commentDb.update({ isRead: true });
+    const notificationDb = db.collection("notification").doc(id);
+    const response = await notificationDb.update({ isRead: true });
     if (response) {
       return res
         .status(200)
@@ -127,31 +126,22 @@ const deleteFcmTokens = async (req, res) => {
   }
 
   try {
-    const doc = await db
+    const docs = await db
       .collection("tokens")
       .where("token", "==", req.params.token)
       .get();
-    for (let i = 0; i < doc.length; i++) {
-      await doc[i].ref
-        .delete()
-        .then(() => {
-          return res
-            .status(200)
-            .json({ success: true, message: "Update fcmTokens successfully" });
-        })
-        .catch(function (error) {
-          return res
-            .status(400)
-            .json({ success: false, message: "Update fcmTokens failed" });
-        });
-    }
+    docs.forEach((doc) => {
+      doc.ref.delete();
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Delete fcmTokens successfully" });
   } catch (e) {
     return res
       .status(500)
       .json({ success: false, message: "Occur in server error" });
   }
 };
-
 
 const updateFcmTokens = async (req, res) => {
   if (!req.body.token) {
@@ -166,8 +156,17 @@ const updateFcmTokens = async (req, res) => {
       return res.status(400).json({ succes: false, message: "No found user " });
     }
     const tokenDb = db.collection("tokens");
+
+    const tokenCheck = tokenDb.where("token", "==", req.body.token);
+    const data = await tokenCheck.get();
+    if (!data.empty) {
+      return res
+        .status(400)
+        .json({ succes: false, message: "Already existed this token" });
+    }
+
     const response = await tokenDb.doc().set({
-      image: current.id,
+      user_id: current.id,
       token: req.body.token,
     });
     if (response) {
@@ -186,9 +185,55 @@ const updateFcmTokens = async (req, res) => {
   }
 };
 
+const getUnreadNotifications = async (req, res) => {
+  try {
+    const notifications = db
+      .collection("notification")
+      .where("isNew", "==", true);
+    const data = await notifications.get();
+    if (data.empty) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetch notification unread successfully",
+        data: 0,
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Fetch notification unread successfully",
+      data: data.docs.length,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
+const updateAllNewNotification = async (req, res) => {
+  try {
+  const docs = await db
+    .collection("notification")
+    .where("isNew", "==", true)
+    .get();
+  docs.forEach((doc) => {
+    doc.ref.update({ isNew: false });
+  });
+  return res
+    .status(200)
+    .json({ success: true, message: "Update notification successfully" });
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
 module.exports = {
   getAllNotifications,
   updateReadNotification,
   deleteFcmTokens,
   updateFcmTokens,
+  getUnreadNotifications,
+  updateAllNewNotification,
 };

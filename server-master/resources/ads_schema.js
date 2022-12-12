@@ -1,7 +1,9 @@
 const { db } = require("../config/fbConfig");
+const AdminBro = require("admin-bro");
+const axios = require("axios");
 
 module.exports = {
-  collection: db.collection('advertising'),
+  collection: db.collection("advertising"),
   schema: {
     content: "string",
     image: "string",
@@ -10,5 +12,40 @@ module.exports = {
   },
   options: {
     listProperties: ["id", "title", "content", "image", "url"],
+    properties: {
+      image: {
+        name: "image",
+        components: {
+          list: AdminBro.bundle("../views/ads_picture"),
+          show: AdminBro.bundle("../views/ads_picture"),
+        },
+      },
+    },
+    actions: {
+      new: {
+        actionType: "resource",
+        isVisible: true,
+        component: AdminBro.bundle("../views/create_ads"),
+        after: (request, response, context) => {
+          console.log('aaaaa');
+        },
+        handler: (request, response, context) => {
+          const { record } = context;
+          try {
+            return {
+              record: record.toJSON(),
+            };
+          } catch (error) {
+            return {
+              record: record.toJSON(),
+            };
+          }
+        },
+      },
+      edit: {
+        components: false,
+        isVisible: false,
+      },
+    },
   },
 };

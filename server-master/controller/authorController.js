@@ -39,9 +39,8 @@ const signup = async (req, res) => {
       address: req.body.address,
       fullname: req.body.fullname,
       birthday: new Date(convertToDateTime(req.body.birthday)).getTime() / 1000,
-      createAt: new Date().getTime() / 1000,
+      create_at: new Date().getTime() / 1000,
       role: "user",
-      fcmTokens: [],
       avatar:
         "https://firebasestorage.googleapis.com/v0/b/advertising-classified.appspot.com/o/user%2Favatar_default.png?alt=media&token=ecdcff38-dea8-4ffe-acfe-513532823d8d",
     };

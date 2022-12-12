@@ -7,7 +7,7 @@ const isAdmin = require("../utils/CheckRole");
 
 const PAGE_SIZE = 4;
 
-function sendUpdatePostNotifications(title, status) {
+function sendUpdatePostNotifications(title, status, user_id) {
   var message = "Tin đăng";
   switch (status) {
     case "reject":
@@ -19,7 +19,7 @@ function sendUpdatePostNotifications(title, status) {
     default:
       message += " của bạn đang chờ duyệt";
   }
-  sendNotifications(message, title, "post");
+  sendNotifications(message, title, `post ${status}`, user_id);
 }
 
 function onlyUnique(value, index, self) {
@@ -369,7 +369,7 @@ const createPost = async (req, res) => {
           update_at: new Date().getTime() / 1000,
           status: "pending",
           brand_id: req.body.brand_id,
-          price: req.body.price,
+          price: parseInt(req.body.price),
           address: req.body.address,
           description: req.body.description,
           arrayTitle: createTitleArray(req.body.title.toLowerCase()),
@@ -379,7 +379,7 @@ const createPost = async (req, res) => {
         try {
           const postDb = db.collection("post");
           const response = await postDb.doc().set(newPost);
-
+          sendUpdatePostNotifications(req.body.title, "pending", req.body.user_id);
           if (response) {
             return res
               .status(200)
@@ -499,37 +499,37 @@ const updatePost = async (req, res) => {
 const updateStatusPost = async (req, res) => {
   const id = req.params.id;
   const status = req.body.status;
-  // try {
-  const checkAdmin = await isAdmin();
-  if (!checkAdmin) {
+  try {
+    const checkAdmin = await isAdmin();
+    if (!checkAdmin) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Only admin can do it" });
+    }
+    if (status !== "pending" && status !== "accept" && status !== "reject") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Status is not exist" });
+    }
+    const data = db.collection("post").doc(id);
+    const response = await data.update({ status: status });
+    if (response) {
+      const postData = await data.get();
+      const title = postData.data().title;
+      sendUpdatePostNotifications(title, status, postData.data().user_id);
+      return res
+        .status(200)
+        .json({ success: true, message: "Update status successfully" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Update status failed" });
+    }
+  } catch (e) {
     return res
-      .status(400)
-      .json({ success: false, message: "Only admin can do it" });
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
   }
-  if (status !== "pending" && status !== "accept" && status !== "reject") {
-    return res
-      .status(400)
-      .json({ success: false, message: "Status is not exist" });
-  }
-  const data = db.collection("post").doc(id);
-  const response = await data.update({ status: status });
-  if (response) {
-    const postData = await data.get();
-    const title = postData.data().title;
-    sendUpdatePostNotifications(title, status);
-    return res
-      .status(200)
-      .json({ success: true, message: "Update status successfully" });
-  } else {
-    return res
-      .status(400)
-      .json({ success: false, message: "Update status failed" });
-  }
-  // } catch (e) {
-  //   return res
-  //     .status(500)
-  //     .json({ success: false, message: "Occur in server error" });
-  // }
 };
 
 const deletePost = async (req, res) => {

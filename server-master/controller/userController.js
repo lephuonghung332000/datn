@@ -266,7 +266,6 @@ const getAllUser = async (req, res) => {
         doc.data().address,
         doc.data().gender,
         doc.data().role,
-        doc.data().fcmTokens,
         doc.data().create_at
       );
       userArray.push(user);
@@ -281,36 +280,6 @@ const getAllUser = async (req, res) => {
   }
 };
 
-const updateFCMTokens = async (req, res) => {
-  const user = await currentUser();
-  if (!user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Can't not find user" });
-  }
-  const user_id = user.id;
-  const fcmTokens = req.body.fcmTokens;
-  try {
-    const response = await db
-      .collection("user")
-      .doc(user_id)
-      .update({ fcmTokens: fcmTokens });
-    if (response) {
-      return res
-        .status(200)
-        .json({ success: true, message: "Update fcmTokens successfully" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Update fcmTokens failed" });
-    }
-  } catch (e) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
-  }
-};
-
 module.exports = {
   getAllUser,
   getCurrentUser,
@@ -318,5 +287,4 @@ module.exports = {
   updateUser,
   updateRole,
   deleteUser,
-  updateFCMTokens,
 };

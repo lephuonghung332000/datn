@@ -10,7 +10,7 @@ const upload = multer({
 }).single("file");
 
 router.get('/',userMiddleware, getAllAds);
-router.post('/addAds',userMiddleware, upload, createAds);
+router.post('/addAds', upload, createAds);
 router.delete('/deleteAds/:id',userMiddleware, deleteAds);
 
 module.exports = {

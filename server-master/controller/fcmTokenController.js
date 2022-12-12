@@ -21,7 +21,7 @@ async function getAllToken() {
 async function getTokensByUserId(user_id) {
   try {
     const tokens = db.collection("tokens");
-    const data = await tokens.where("token", "==", user_id).get();
+    const data = await tokens.where("user_id", "==", user_id).get();
     const tokensArray = [];
     if (data.empty) {
       return [];

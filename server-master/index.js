@@ -1,5 +1,6 @@
 const express = require("express");
 const { firebase } = require("./config/fbConfig");
+
 const isAdmin = require("./utils/CheckRole");
 //for admin setup
 const AdminBroExpress = require("@admin-bro/express");
@@ -9,9 +10,6 @@ const UserSchema = require("./resources/user_schema");
 const AdsSchema = require("./resources/ads_schema");
 const BrandSchema = require("./resources/brand_schema");
 const CategorySchema = require("./resources/category_schema");
-const CommentSchema = require("./resources/comment_schema");
-const HintChatSchema = require("./resources/hint_chat_schema");
-const SearchHistorySchema = require("./resources/search_history_schema");
 const PostSchema = require("./resources/post_schema");
 
 require("dotenv").config();
@@ -27,11 +25,8 @@ const adminBro = new AdminBro({
     UserSchema,
     BrandSchema,
     CategorySchema,
-    CommentSchema,
-    HintChatSchema,
-    SearchHistorySchema,
     PostSchema,
-    AdsSchema
+    AdsSchema,
   ],
 });
 
@@ -46,21 +41,23 @@ const brandRouter = require("./routers/brandRouter");
 const commentRouter = require("./routers/commentRouter");
 const countryRouter = require("./routers/countryRouter");
 const notificationRouter = require("./routers/notificationRouter");
-const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
-  authenticate: async (email, password) => {
-    const user = await firebase
-      .auth()
-      .signInWithEmailAndPassword(email, password);
-    const checkAdmin = await isAdmin();
-    if (checkAdmin) {
-      return user;
-    }
-    return null;
-  },
-  cookiePassword: "some-secret-password-used-to-secure-cookie",
-  cookieName: "adminbro",
-});
-
+try {
+  const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
+    authenticate: async (email, password) => {
+      const user = await firebase
+        .auth()
+        .signInWithEmailAndPassword(email, password);
+      const checkAdmin = await isAdmin();
+      if (checkAdmin) {
+        return user;
+      }
+      return null;
+    },
+    cookiePassword: "some-secret-password-used-to-secure-cookie",
+    cookieName: "adminbro",
+  });
+  app.use(adminBro.options.rootPath, loginAdminRouter);
+} catch (e) {}
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {
@@ -78,7 +75,6 @@ app.use("/api/brand", brandRouter.routes);
 app.use("/api/comment", commentRouter.routes);
 app.use("/api/province", countryRouter.routes);
 app.use("/api/notification", notificationRouter.routes);
-app.use(adminBro.options.rootPath, loginAdminRouter);
 
 app.listen(PORT, () => {
   console.log("app is listen at " + PORT);

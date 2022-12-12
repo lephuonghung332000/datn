@@ -13,14 +13,14 @@ module.exports = {
     properties: {
       sub_thumbnail: {
         components: {
-          list: AdminBro.bundle("../views/category_sub_thumbnail"),
-          show: AdminBro.bundle("../views/category_sub_thumbnail_with_title"),
+          list: AdminBro.bundle("../views/sub_thumbnail"),
+          show: AdminBro.bundle("../views/sub_thumbnail_with_title"),
         },
       },
       thumbnail: {
         components: {
-          list: AdminBro.bundle("../views/category_thumbnail"),
-          show: AdminBro.bundle("../views/category_thumbnail_with_title"),
+          list: AdminBro.bundle("../views/thumbnail"),
+          show: AdminBro.bundle("../views/thumbnail_with_title"),
         },
       },
     },
