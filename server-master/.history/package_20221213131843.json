@@ -5,8 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon index.js",
-    "start": "nodemon index.js",
-    "build": "webpack"
+    "start": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
@@ -46,10 +45,5 @@
     "swagger-ui-express": "^4.6.0",
     "uuid": "^9.0.0"
   },
-  "description": "",
-  "devDependencies": {
-    "@rollup/plugin-typescript": "^10.0.1",
-    "css-loader": "^6.7.2",
-    "webpack-cli": "^5.0.1"
-  }
+  "description": ""
 }
