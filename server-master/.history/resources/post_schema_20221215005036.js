@@ -163,7 +163,7 @@ module.exports = {
         component: false,
         handler: async (request, response, context) => {
           const { record } = context;
-          try {
+          // try {
             var post_id = record.params.id;
             var result = await updateStatusPost(post_id, "reject");
             return {

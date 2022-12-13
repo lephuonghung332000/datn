@@ -105,7 +105,7 @@ module.exports = {
         isVisible: (context) => context.record.param("status") !== "pending",
         handler: async (request, response, context) => {
           const { record } = context;
-          try {
+          // try {
             var post_id = record.params.id;
             var result = await updateStatusPost(post_id, "pending");
             return {
@@ -116,15 +116,15 @@ module.exports = {
               record: record.toJSON(),
               redirectUrl: "/admin/resources/post",
             };
-          } catch (error) {
-            return {
-              notice: {
-                message: "Lỗi cập nhật bài đăng",
-                type: "error",
-              },
-              record: record.toJSON(result),
-            };
-          }
+          // } catch (error) {
+          //   return {
+          //     notice: {
+          //       message: "Lỗi cập nhật bài đăng",
+          //       type: "error",
+          //     },
+          //     record: record.toJSON(result),
+          //   };
+          // }
         },
         parent: "Edit status",
       },
@@ -134,7 +134,7 @@ module.exports = {
         component: false,
         handler: async (request, response, context) => {
           const { record } = context;
-          try {
+          // try {
             var post_id = record.params.id;
             var result = await updateStatusPost(post_id, "accept");
             return {
@@ -145,15 +145,15 @@ module.exports = {
               record: record.toJSON(),
               redirectUrl: "/admin/resources/post",
             };
-          } catch (error) {
-            return {
-              notice: {
-                message: "Lỗi cập nhật bài đăng",
-                type: "error",
-              },
-              record: record.toJSON(result),
-            };
-          }
+          // } catch (error) {
+          //   return {
+          //     notice: {
+          //       message: "Lỗi cập nhật bài đăng",
+          //       type: "error",
+          //     },
+          //     record: record.toJSON(result),
+          //   };
+          // }
         },
         parent: "Edit status",
       },
@@ -163,7 +163,7 @@ module.exports = {
         component: false,
         handler: async (request, response, context) => {
           const { record } = context;
-          try {
+          // try {
             var post_id = record.params.id;
             var result = await updateStatusPost(post_id, "reject");
             return {
@@ -174,15 +174,15 @@ module.exports = {
               record: record.toJSON(),
               redirectUrl: "/admin/resources/post",
             };
-          } catch (error) {
-            return {
-              notice: {
-                message: "Lỗi cập nhật bài đăng",
-                type: "error",
-              },
-              record: record.toJSON(result),
-            };
-          }
+          // } catch (error) {
+          //   return {
+          //     notice: {
+          //       message: "Lỗi cập nhật bài đăng",
+          //       type: "error",
+          //     },
+          //     record: record.toJSON(result),
+          //   };
+          // }
         },
         parent: "Edit status",
       },

@@ -7,6 +7,7 @@ const Image = (props) => {
       <div id="container">
         <div id="viewport">
           <label class="sc-dlnjPT fyQNXW admin-bro_Label">Avatar</label>
+          <p></p>
           <img src={url} width={200} height={200} />
         </div>
       </div>

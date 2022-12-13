@@ -6,8 +6,7 @@ const Gender = (props) => {
   return (
     <section class="sc-dIsAE lcuJrN admin-bro_Box">
       <label class="sc-dlnjPT fyQNXW admin-bro_Label">Gender</label>
-      {gender}
-      <div></div>
+      <p>{gender}</p>
     </section>
   );
 };

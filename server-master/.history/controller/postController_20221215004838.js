@@ -501,6 +501,12 @@ const updateStatusPost = async (req, res) => {
   const id = req.params.id;
   const status = req.body.status;
   try {
+    const checkAdmin = await isAdmin();
+    if (!checkAdmin) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Only admin can do it" });
+    }
     if (status !== "pending" && status !== "accept" && status !== "reject") {
       return res
         .status(400)

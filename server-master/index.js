@@ -21,13 +21,7 @@ const app = express();
 AdminBro.registerAdapter(AdminBroFirebase.FirestoreAdapter);
 const adminBro = new AdminBro({
   rootPath: "/admin",
-  resources: [
-    UserSchema,
-    BrandSchema,
-    CategorySchema,
-    PostSchema,
-    AdsSchema,
-  ],
+  resources: [UserSchema, BrandSchema, CategorySchema, PostSchema, AdsSchema],
 });
 
 const authorRouter = require("./routers/authorRouter");
@@ -41,8 +35,11 @@ const brandRouter = require("./routers/brandRouter");
 const commentRouter = require("./routers/commentRouter");
 const countryRouter = require("./routers/countryRouter");
 const notificationRouter = require("./routers/notificationRouter");
-try {
-  const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(adminBro, {
+
+const secret = "very_secret_secret";
+const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(
+  adminBro,
+  {
     authenticate: async (email, password) => {
       const user = await firebase
         .auth()
@@ -51,13 +48,20 @@ try {
       if (checkAdmin) {
         return user;
       }
-      return null;
+      return false;
     },
     cookiePassword: "some-secret-password-used-to-secure-cookie",
     cookieName: "adminbro",
-  });
-  app.use(adminBro.options.rootPath, loginAdminRouter);
-} catch (e) {}
+  },
+  null,
+  {
+    resave: true,
+    saveUninitialized: true,
+    secret,
+  }
+);
+app.use(adminBro.options.rootPath, loginAdminRouter);
+
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {

@@ -8,5 +8,6 @@ module.exports = async function isAdmin() {
   const id = currentUser.uid
   const user = await db.collection("user").doc(id).get();
   if (user.data().role === "admin") return true;
+  console.log(user.data());
   return false;
 };

@@ -21,7 +21,7 @@ const Name = (props) => {
       {user ? (
         <section class="sc-dIsAE lcuJrN admin-bro_Box">
           <label class="sc-dlnjPT fyQNXW admin-bro_Label">User</label>
-          <div>{user.fullname}</div>
+          <p>{user.fullname}</p>
         </section>
       ) : (
         <p>loading...</p>

@@ -108,6 +108,9 @@ const getAllChats = async (req, res) => {
       chat["avatar"] = users[i].avatar;
       chat["fullname"] = users[i].fullname;
       chat["post_title"] = posts[i].title;
+      chat["post_price"] = posts[i].price;
+      chat["post_image"] = posts[i].images[0];
+      chat["user_id"] = users[i].id;
       chatsArray.push(chat);
     }
     return res.status(200).json({

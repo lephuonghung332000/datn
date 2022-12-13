@@ -2,7 +2,7 @@ import React from "react";
 
 const CreateAt = (props) => {
   const createAt = timeConverter(props.record.params["create_at"]);
-  return <div>{createAt}</div>;
+  return <p>{createAt}</p>;
 };
 
 function timeConverter(UNIX_timestamp) {

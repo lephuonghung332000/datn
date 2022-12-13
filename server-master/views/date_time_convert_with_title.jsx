@@ -3,10 +3,9 @@ import React from "react";
 const CreateAtWithTitle = (props) => {
   const createAt = timeConverter(props.record.params["create_at"]);
   return (
-    <section class ="sc-dIsAE lcuJrN admin-bro_Box">
+    <section class="sc-dIsAE lcuJrN admin-bro_Box">
       <label class="sc-dlnjPT fyQNXW admin-bro_Label">CreateAt</label>
-       {createAt}
-      <div></div>
+      <p>{createAt}</p>
     </section>
   );
 };
