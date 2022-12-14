@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-const CategoryNameWithTitle = (props) => {
+const CategoryName = (props) => {
   const [catetory, setCategory] = useState();
 
   useEffect(() => {
     const init = async () => {
       const options = {
         method: "GET",
-        url: `http://localhost:5000/api/category`,
+        url: `http://classifiedadvertising.herokuapp.com/api/category`,
       };
       const _catetories = await axios(options);
       const _category = _catetories.data.data.find(function (e) {
@@ -21,10 +21,9 @@ const CategoryNameWithTitle = (props) => {
   return (
     <>
       {catetory ? (
-        <section class ="sc-dIsAE lcuJrN admin-bro_Box">
-          <label class="sc-dlnjPT fyQNXW admin-bro_Label">Category</label>
+        <div>
           <p>{`${catetory.name}`}</p>
-        </section>
+        </div>
       ) : (
         <p>loading...</p>
       )}
@@ -32,4 +31,4 @@ const CategoryNameWithTitle = (props) => {
   );
 };
 
-export default CategoryNameWithTitle;
+export default CategoryName;
