@@ -26,6 +26,9 @@ module.exports = {
         actionType: "resource",
         isVisible: true,
         component: AdminBro.bundle("../views/create_ads"),
+        after: (request, response, context) => {
+          console.log('aaaaa');
+        },
         handler: (request, response, context) => {
           const { record } = context;
           try {

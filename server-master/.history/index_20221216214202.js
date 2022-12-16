@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 
 const app = express();
 //socket
-socketListner(PORT);
+socketListner();
 //for admin panel
 AdminBro.registerAdapter(AdminBroFirebase.FirestoreAdapter);
 const adminBro = new AdminBro({
@@ -63,7 +63,7 @@ const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(
   }
 );
 app.use(adminBro.options.rootPath, loginAdminRouter);
-console.log("aaaa");
+
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {
@@ -82,8 +82,11 @@ app.use("/api/comment", commentRouter.routes);
 app.use("/api/province", countryRouter.routes);
 app.use("/api/notification", notificationRouter.routes);
 
+app.listen(PORT, () => {
+  console.log("app is listen at " + PORT);
+});
 
-function socketListner(port) {
+function socketListner() {
   const server = require("http").createServer(app);
   const io = require("socket.io")(server);
 
@@ -92,12 +95,10 @@ function socketListner(port) {
 
     client.on("message", function (data) {
       console.log(data);
-      // io.emit("message", data);
+      io.emit("message", data);
     });
 
-    client.on("connect", function () {
-      console.log("connected");
-    });
+    client.on("connect", function () {});
 
     client.on("disconnect", function () {
       console.log("client disconnect...", client.id);
@@ -110,12 +111,13 @@ function socketListner(port) {
     });
   });
 
-  server.listen(port, function (err) {
+  var server_port = process.env.PORT || 3000;
+  server.listen(server_port, function (err) {
     if (err) throw err;
-    console.log("Listening on port %d", port);
+    console.log("Listening on port %d", server_port);
   });
 
-  app.get("/socketChat", (req, res) => {
+  app.get("/chat", (req, res) => {
     res.send("server successed starting.");
   });
 }

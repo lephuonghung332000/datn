@@ -63,7 +63,7 @@ const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(
   }
 );
 app.use(adminBro.options.rootPath, loginAdminRouter);
-console.log("aaaa");
+
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {
@@ -96,7 +96,7 @@ function socketListner(port) {
     });
 
     client.on("connect", function () {
-      console.log("connected");
+      console.log("connected")l
     });
 
     client.on("disconnect", function () {

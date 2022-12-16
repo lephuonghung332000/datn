@@ -127,18 +127,16 @@ const CreateAds = (props) => {
 
 const handlerCreateAds = async (form, sendNotice) => {
   try {
-    window.opener = null;
-
-    const options = {
-      method: "POST",
-      url: `http://localhost:5000/api/ads/addAds`,
-      data: form,
-      headers: { "Content-Type": "multipart/form-data" },
-    };
-    await axios(options);
-  
+    // const options = {
+    //   method: "POST",
+    //   url: `http://localhost:5000/api/ads/addAds`,
+    //   data: form,
+    //   headers: { "Content-Type": "multipart/form-data" },
+    // };
+    // await axios(options);
+    // window.opener = null;
+    // window.close();
     window.open("http://localhost:5000/admin/resources/advertising");
-    window.close();
     sendNotice({ message: "Send success", type: "success" });
   } catch (error) {
     sendNotice({ message: "Send error", type: "error" });

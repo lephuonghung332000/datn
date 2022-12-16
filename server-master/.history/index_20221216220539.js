@@ -63,7 +63,7 @@ const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(
   }
 );
 app.use(adminBro.options.rootPath, loginAdminRouter);
-console.log("aaaa");
+
 app.use(express.json());
 app.use(cors());
 app.get("/", (req, res) => {
@@ -82,6 +82,9 @@ app.use("/api/comment", commentRouter.routes);
 app.use("/api/province", countryRouter.routes);
 app.use("/api/notification", notificationRouter.routes);
 
+// app.listen(PORT, () => {
+//   console.log("app is listen at " + PORT);
+// });
 
 function socketListner(port) {
   const server = require("http").createServer(app);
@@ -92,12 +95,10 @@ function socketListner(port) {
 
     client.on("message", function (data) {
       console.log(data);
-      // io.emit("message", data);
+      io.emit("message", data);
     });
 
-    client.on("connect", function () {
-      console.log("connected");
-    });
+    client.on("connect", function () {});
 
     client.on("disconnect", function () {
       console.log("client disconnect...", client.id);
@@ -115,7 +116,7 @@ function socketListner(port) {
     console.log("Listening on port %d", port);
   });
 
-  app.get("/socketChat", (req, res) => {
-    res.send("server successed starting.");
-  });
+  // app.get("/socketChat", (req, res) => {
+  //   res.send("server successed starting.");
+  // });
 }
