@@ -63,12 +63,26 @@ const loginAdminRouter = AdminBroExpress.buildAuthenticatedRouter(
   }
 );
 app.use(adminBro.options.rootPath, loginAdminRouter);
-console.log("aaaa");
 app.use(express.json());
-app.use(cors());
+const corsOpts = {
+  origin: '*',
+
+  methods: [
+    'GET',
+    'POST',
+  ],
+
+  allowedHeaders: [
+    'Content-Type',
+  ],
+};
+
+app.use(cors(corsOpts));
+
 app.get("/", (req, res) => {
   res.json("Hello");
 });
+
 
 app.use("/api/auth", authorRouter.routes);
 app.use("/api/user", userRouter.routes);
@@ -76,23 +90,28 @@ app.use("/api/ads", adsRouter.routes);
 app.use("/api/chat", chatRouter.routes);
 app.use("/api/search", searchRouter.routes);
 app.use("/api/category", categoryRouter.routes);
-app.use("/api/post", postRouter.routes);
+app.use("/api/post/", postRouter.routes);
 app.use("/api/brand", brandRouter.routes);
 app.use("/api/comment", commentRouter.routes);
 app.use("/api/province", countryRouter.routes);
 app.use("/api/notification", notificationRouter.routes);
 
-
 function socketListner(port) {
   const server = require("http").createServer(app);
   const io = require("socket.io")(server);
-
+  var clients = {};
   io.on("connection", function (client) {
-    console.log("client connect...", client.id);
 
     client.on("message", function (data) {
-      console.log(data);
-      // io.emit("message", data);
+      let targetId = data.targetId;
+      if (clients[targetId]) {
+        clients[targetId].emit("message", data);
+      }
+    });
+
+    client.on("signIn", function (id) {
+      clients[id] = client;
+      console.log("client connect...", client.id);
     });
 
     client.on("connect", function () {

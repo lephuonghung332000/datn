@@ -1,20 +1,13 @@
 const { db } = require("../config/fbConfig");
 const SearchHistory = require("../models/SearchHistory");
-const currentUser = require("../utils/CurrentUser");
 
 const getAllHistorySearch = async (req, res) => {
+  var user_id = req.params.id;
   try {
-    const user = await currentUser();
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Can't not find user" });
-    }
-    const user_id = user.id;
     const searchs = db
       .collection("search_history")
       .where("user_id", "==", user_id)
-      .orderBy("create_at","desc")
+      .orderBy("create_at", "desc")
       .limit(10);
     const data = await searchs.get();
     const searchArray = [];
@@ -62,20 +55,18 @@ const addSearchHistory = async (req, res) => {
     const searchDb = db.collection("search_history");
     const searchs = db
       .collection("search_history")
-      .where("key", "==", req.body.key)
+      .where("key", "==", req.body.key);
     const data = await searchs.get();
-    if(!data.empty){
+    if (!data.empty) {
       return res
-      .status(400)
-      .json({ succes: false, message: "Already existed this key" });
+        .status(400)
+        .json({ succes: false, message: "Already existed this key" });
     }
-    const response = await searchDb
-      .doc()
-      .set({
-        key: req.body.key,
-        user_id: req.body.user_id,
-        create_at: new Date().getTime() / 1000,
-      });
+    const response = await searchDb.doc().set({
+      key: req.body.key,
+      user_id: req.body.user_id,
+      create_at: new Date().getTime() / 1000,
+    });
     if (response) {
       return res
         .status(200)

@@ -1,14 +1,15 @@
 const express = require("express");
-const userMiddleware = require("../middleware/author");
 const {
   getAllHintChats,
   getAllChats,
+  addChat,
 } = require("../controller/chatController");
 
 const router = express.Router();
 
-router.get("/hints", userMiddleware, getAllHintChats);
-router.get("/", userMiddleware, getAllChats);
+router.get("/hints", getAllHintChats);
+router.get("/:id", getAllChats);
+router.post("/addChat", addChat);
 
 module.exports = {
   routes: router,

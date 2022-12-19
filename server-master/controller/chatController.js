@@ -1,9 +1,7 @@
 const { db } = require("../config/fbConfig");
-const PAGE_SIZE = 2;
+const PAGE_SIZE = 10;
 const HintChat = require("../models/HintChat");
 const Chat = require("../models/Chat");
-const currentUser = require("../utils/CurrentUser");
-const User = require("../models/User");
 
 const getAllHintChats = async (req, res) => {
   try {
@@ -25,14 +23,10 @@ const getAllHintChats = async (req, res) => {
 
 const getAllChats = async (req, res) => {
   var page = req.query.page;
+  const user_id = req.params.id;
   var lengthChat;
   var data;
   try {
-    var current = await currentUser();
-    if (!current) {
-      return res.status(400).json({ succes: false, message: "No found user " });
-    }
-    var user_id = current.id;
     if (page) {
       // get page
       page = parseInt(page);
@@ -144,7 +138,164 @@ async function queryChat(user_id, limit, start) {
   }
   return await data.get();
 }
+
+const addChat = async (req, res) => {
+  if (!req.body.id_receiver) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Need to field id receiver" });
+  }
+
+  if (!req.body.id_sender) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Need to field id sender" });
+  }
+
+  if (!req.body.post_id) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field post" });
+  }
+
+  try {
+    const chatDb = db.collection("chat");
+    const users = [req.body.id_sender, req.body.id_receiver];
+    const chats = db
+      .collection("chat")
+      .where("post_id", "==", req.body.post_id)
+      .where("id_receiver", "==", req.body.id_receiver)
+      .where("id_sender", "==", req.body.id_sender);
+    const data = await chats.get();
+    const chatsArray = [];
+    for (var i = 0; i < data.docs.length; i++) {
+      const chat = new Chat(
+        data.docs[i].id,
+        data.docs[i].data().id_receiver,
+        data.docs[i].data().id_sender,
+        data.docs[i].data().create_at,
+        data.docs[i].data().post_id
+      );
+      chatsArray.push(chat);
+    }
+
+    if (!data.empty) {
+      return res.status(200).json({
+        success: false,
+        message: "Already existed this chat",
+        data: chatsArray[0].id,
+      });
+    }
+    const response = await chatDb.add({
+      id_receiver: req.body.id_receiver,
+      id_sender: req.body.id_sender,
+      post_id: req.body.post_id,
+      users: users,
+      create_at: new Date().getTime() / 1000,
+    });
+    if (response) {
+      return res.status(200).json({
+        success: true,
+        message: "Add chat successfully",
+        data: response.id,
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Add chat failed" });
+    }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
+const createMessageChat = async (req, res) => {
+  var file = req.file;
+
+  if (!req.body.chat_box_id) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field chat id" });
+  }
+  if (!req.body.sendBy) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field sender" });
+  }
+  if (!req.body.content) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field message" });
+  }
+  if (!req.body.create_at) {
+    return res
+      .status(400)
+      .json({ succes: false, message: "Missing field create time" });
+  }
+
+  if (!file) {
+    updateExtra(req, res, null);
+    return;
+  }
+
+  // Format the filename
+  const timestamp = Date.now();
+  const path = "chat/";
+  const name = file.originalname.split(".")[0];
+  const type = file.originalname.split(".")[1];
+  const fileName = `${path}${name}_${timestamp}.${type}`;
+
+  const blob = firebaseStorage.file(fileName);
+
+  const blobWriter = blob.createWriteStream({
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+
+  blobWriter.on("error", (err) => {});
+
+  blobWriter.on("finish", async () => {
+    const options = {
+      action: "read",
+      expires: "03-17-2025",
+    };
+    // Get a signed URL for the file
+    const signedUrlArray = await blob.getSignedUrl(options);
+    updateExtra(req, res, signedUrlArray[0]);
+  });
+  blobWriter.end(file.buffer);
+};
+
+async function updateExtra(req, res, file) {
+  try {
+    const messageChatDb = db.collection("message_chat");
+    const response = await messageChatDb.doc().set({
+      image: file,
+      title: req.body.title,
+      content: req.body.content,
+      url: req.body.url,
+    });
+    if (response) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Add message chat successfully" });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "Add message chat failed" });
+    }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+}
 module.exports = {
   getAllHintChats,
   getAllChats,
+  addChat,
+  createMessageChat
 };

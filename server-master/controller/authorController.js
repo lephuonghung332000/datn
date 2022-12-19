@@ -1,4 +1,6 @@
 const { firebase, admin, db } = require("../config/fbConfig");
+const currentUser = require("../utils/CurrentUser");
+
 //Checks that the email passed in is an existing user
 async function checkIfUserWithEmailExists(email) {
   const userCollectionRef = admin.firestore().collection("user");
@@ -51,7 +53,10 @@ const signup = async (req, res) => {
       return res.status(201).json({
         success: true,
         message: "Register successfully",
-        data: idToken,
+        data: {
+          id: data.user.uid,
+          token: idToken,
+        },
       });
     } else {
       return res
@@ -77,20 +82,31 @@ const login = async (req, res) => {
       .auth()
       .signInWithEmailAndPassword(req.body.email, req.body.password);
     const idToken = await firebase.auth().currentUser.getIdToken(true);
+    const id = await firebase.auth().currentUser.uid;
     return res.status(200).json({
       success: true,
       message: "Login successfully",
-      data: idToken,
+      data: {
+        id: id,
+        token: idToken,
+      },
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: error });
+    return res.status(500).json({ success: false, message: error });
   }
 };
 
 const refreshToken = async (req, res) => {
   try {
+    const user_id = req.params.id;
+    var current = await currentUser();
+    if (!current) {
+      return res.status(400).json({ succes: false, message: "No found user " });
+    }
+    var current_user_id = current.id;
+    if (user_id !== current_user_id) {
+      return res.status(400).json({ succes: false, message: "No found user " });
+    }
     const token = await firebase.auth().currentUser.getIdToken(true); // here we force a refresh
     if (token) {
       return res.status(200).json({

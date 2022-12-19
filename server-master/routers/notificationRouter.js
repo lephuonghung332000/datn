@@ -5,16 +5,16 @@ const {
   deleteFcmTokens,
   updateFcmTokens,
   getUnreadNotifications,
-  updateAllNewNotification
+  updateAllNewNotification,
 } = require("../controller/notificationController");
 
 const router = express.Router();
 
-router.get("/", getAllNotifications);
+router.get("/:id", getAllNotifications);
 router.get("/unread", getUnreadNotifications);
 router.patch("/unread/update", updateAllNewNotification);
 router.patch("/read/:id", updateReadNotification);
-router.post("/updateFCMTokens", updateFcmTokens);
+router.post("/updateFCMTokens/:id", updateFcmTokens);
 router.delete("/removeFcmToken/:token", deleteFcmTokens);
 
 module.exports = {

@@ -7,7 +7,6 @@ const {
 } = require("../controller/commentController");
 
 const router = express.Router();
-const multer = require("multer");
 
 router.get("/:id?", getAllComment);
 router.post("/addComment", addComment);

@@ -1,9 +1,6 @@
 const { db, firebaseStorage } = require("../config/fbConfig");
 const Post = require("../models/Post");
 const sendNotifications = require("../controller/sendNotification");
-const currentUser = require("../utils/CurrentUser");
-
-const isAdmin = require("../utils/CheckRole");
 
 const PAGE_SIZE = 4;
 
@@ -182,20 +179,6 @@ async function getResultPost(
       .json({ success: false, message: "Occur in server error" });
   }
 }
-
-const getMyPost = async (req, res) => {
-  var current = await currentUser();
-  if (!current) {
-    return res.status(400).json({ succes: false, message: "No found user " });
-  }
-
-  var page = req.query.page;
-  var status = req.query.status;
-  var category_id = req.query.category_id;
-  var id = current.id;
-
-  getResultPost(id, status, category_id, null, null, null, page, res);
-};
 
 const getPost = async (req, res) => {
   var user_id = req.params.id;
@@ -549,7 +532,6 @@ const deletePost = async (req, res) => {
 };
 
 module.exports = {
-  getMyPost,
   getPost,
   createPost,
   updatePost,

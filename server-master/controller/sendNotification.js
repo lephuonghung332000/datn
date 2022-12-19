@@ -1,5 +1,4 @@
 const { admin, db, firebaseStorage } = require("../config/fbConfig");
-const currentUser = require("../utils/CurrentUser");
 
 const {
   getAllToken,
@@ -17,7 +16,6 @@ module.exports = async function sendNotifications(
   var content = "";
   var ids = [];
   try {
-    const user = await currentUser();
     const notificationDb = db.collection("notification");
     //ads
     if (type === "ads") {
@@ -51,8 +49,6 @@ module.exports = async function sendNotifications(
     }
     //post
     else {
-      console.log(user_id_choose);
-      console.log(user.id);
       title = postTitle;
       content = body;
       if (user_id_choose) {
@@ -67,8 +63,7 @@ module.exports = async function sendNotifications(
         });
         //send notification
 
-        if (user.id == user_id_choose) {
-          const tokens = await getTokensByUserId(user.id);
+          const tokens = await getTokensByUserId(user_id_choose);
           admin.messaging().sendMulticast({
             tokens: tokens,
             data: {
@@ -80,7 +75,7 @@ module.exports = async function sendNotifications(
               body: content,
             },
           });
-        }
+      
       }
     }
   } catch (e) {}

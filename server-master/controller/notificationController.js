@@ -1,19 +1,14 @@
 const { db, firebaseStorage } = require("../config/fbConfig");
-const currentUser = require("../utils/CurrentUser");
 
 const Notification = require("../models/Notification");
 const PAGE_SIZE = 10;
 
 const getAllNotifications = async (req, res) => {
   var page = req.query.page;
+  var user_id = req.query.id;
   var lengthNotification;
   var data;
   try {
-    var current = await currentUser();
-    if (!current) {
-      return res.status(400).json({ succes: false, message: "No found user " });
-    }
-    var user_id = current.id;
     if (page) {
       // get page
       page = parseInt(page);
@@ -144,6 +139,7 @@ const deleteFcmTokens = async (req, res) => {
 };
 
 const updateFcmTokens = async (req, res) => {
+  const user_id = req.params.id;
   if (!req.body.token) {
     return res
       .status(400)
@@ -151,10 +147,6 @@ const updateFcmTokens = async (req, res) => {
   }
 
   try {
-    var current = await currentUser();
-    if (!current) {
-      return res.status(400).json({ succes: false, message: "No found user " });
-    }
     const tokenDb = db.collection("tokens");
 
     const tokenCheck = tokenDb.where("token", "==", req.body.token);
@@ -166,7 +158,7 @@ const updateFcmTokens = async (req, res) => {
     }
 
     const response = await tokenDb.doc().set({
-      user_id: current.id,
+      user_id: user_id,
       token: req.body.token,
     });
     if (response) {
@@ -212,16 +204,16 @@ const getUnreadNotifications = async (req, res) => {
 
 const updateAllNewNotification = async (req, res) => {
   try {
-  const docs = await db
-    .collection("notification")
-    .where("isNew", "==", true)
-    .get();
-  docs.forEach((doc) => {
-    doc.ref.update({ isNew: false });
-  });
-  return res
-    .status(200)
-    .json({ success: true, message: "Update notification successfully" });
+    const docs = await db
+      .collection("notification")
+      .where("isNew", "==", true)
+      .get();
+    docs.forEach((doc) => {
+      doc.ref.update({ isNew: false });
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Update notification successfully" });
   } catch (e) {
     return res
       .status(500)

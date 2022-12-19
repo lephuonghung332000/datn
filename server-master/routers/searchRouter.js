@@ -1,5 +1,4 @@
 const express = require("express");
-const userMiddleware = require("../middleware/author");
 const {
   getAllHistorySearch,
   addSearchHistory,
@@ -7,7 +6,7 @@ const {
 
 const router = express.Router();
 
-router.get("/", userMiddleware, getAllHistorySearch);
+router.get("/:id", getAllHistorySearch);
 router.post("/addSearch", addSearchHistory);
 
 module.exports = {

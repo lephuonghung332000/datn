@@ -9,9 +9,9 @@ const upload = multer({
   storage: multer.memoryStorage(),
 }).single("file");
 
-router.get('/',userMiddleware, getAllAds);
+router.get('/', getAllAds);
 router.post('/addAds', upload, createAds);
-router.delete('/deleteAds/:id',userMiddleware, deleteAds);
+router.delete('/deleteAds/:id', deleteAds);
 
 module.exports = {
     routes: router

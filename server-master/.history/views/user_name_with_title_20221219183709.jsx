@@ -8,7 +8,7 @@ const Name = (props) => {
       const user_id = props.record.params["user_id"];
       const options = {
         method: "GET",
-        url: `http://localhost:5000/api/user/${user_id}`,
+        url: `https://classifiedadvertising.herokuapp.com/api/user/${user_id}`,
       };
       const result = await axios(options);
       setUser(result.data.data);
@@ -16,7 +16,18 @@ const Name = (props) => {
     init();
   }, [props.record.params["user_id"]]);
 
-  return <>{user ? <div>{user.fullname}</div> : <p>loading...</p>}</>;
+  return (
+    <>
+      {user ? (
+        <section class="sc-dIsAE lcuJrN admin-bro_Box">
+          <label class="sc-dlnjPT fyQNXW admin-bro_Label">User</label>
+          <p>{user.fullname}</p>
+        </section>
+      ) : (
+        <p>loading...</p>
+      )}
+    </>
+  );
 };
 
 export default Name;

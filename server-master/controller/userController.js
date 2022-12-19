@@ -9,15 +9,8 @@ function convertToDateTime(date) {
   return `${dateSplit[1]}/${dateSplit[0]}/${dateSplit[2]}`;
 }
 
-async function updateExtra(req, res, file) {
-  const user = await currentUser();
-  if (!user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Can't not find user" });
-  }
-  const user_id = user.id;
-  // try {
+async function updateExtra(req, res,user_id, file) {
+  try {
   const updateUser = new Object();
   if (req.body.email) {
     updateUser.email = req.body.email;
@@ -32,7 +25,7 @@ async function updateExtra(req, res, file) {
   }
 
   if (req.body.gender) {
-    updateUser.gender = (req.body.gender === 'true');
+    updateUser.gender = req.body.gender === "true";
   }
 
   if (req.body.address) {
@@ -67,17 +60,18 @@ async function updateExtra(req, res, file) {
   } else {
     return res.status(400).json({ success: false, message: "Update failed" });
   }
-  // } catch (e) {
-  //   return res
-  //     .status(500)
-  //     .json({ success: false, message: "Occur in server error" });
-  // }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
 }
 
 const updateUser = async (req, res) => {
   var file = req.file;
+  var user_id = req.params.id;
   if (!file) {
-    updateExtra(req, res, null);
+    updateExtra(req, res, user_id, null);
     return;
   }
   // Format the filename
@@ -105,7 +99,7 @@ const updateUser = async (req, res) => {
 
     // Get a signed URL for the file
     const signedUrlArray = await blob.getSignedUrl(options);
-    updateExtra(req, res, signedUrlArray[0]);
+    updateExtra(req, res, user_id, signedUrlArray[0]);
   });
   blobWriter.end(file.buffer);
 };

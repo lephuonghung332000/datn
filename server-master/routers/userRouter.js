@@ -7,7 +7,6 @@ const {
   updateRole,
   deleteUser,
 } = require("../controller/userController");
-const userMiddleware = require("../middleware/author");
 const multer = require("multer");
 
 const upload = multer({
@@ -16,11 +15,11 @@ const upload = multer({
 
 const router = express.Router();
 
-router.get("/all", userMiddleware, getAllUser);
-router.get("/", userMiddleware, getCurrentUser);
+router.get("/all", getAllUser);
+router.get("/", getCurrentUser);
 router.get("/:id", getUserById);
-router.delete("/:id", userMiddleware, deleteUser);
-router.patch("/update", userMiddleware, upload, updateUser);
+router.delete("/:id", deleteUser);
+router.patch("/update/:id", upload, updateUser);
 router.patch("/update/role/:id", updateRole);
 
 module.exports = {
