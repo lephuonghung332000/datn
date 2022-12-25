@@ -2,7 +2,7 @@ const { db, firebaseStorage } = require("../config/fbConfig");
 const Post = require("../models/Post");
 const sendNotifications = require("../controller/sendNotification");
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 4;
 
 function sendUpdatePostNotifications(title, status, user_id) {
   var message = "Tin đăng";
