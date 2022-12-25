@@ -1,8 +1,8 @@
 import React from "react";
 
 const CreateAt = (props) => {
-  const createAt = timeConverter(props.record.params["birthday"]);
-  return <div>{createAt}</div>;
+  const birthday = timeConverter(props.record.params["birthday"]);
+  return <div>{birthday}</div>;
 };
 
 function timeConverter(UNIX_timestamp) {

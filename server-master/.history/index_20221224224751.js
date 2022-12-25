@@ -134,7 +134,6 @@ function socketListner(port) {
 
     client.on("acceptCall", async function (data) {
       data.otherUserId = data.myId;
-      console.log(data.myId);
       if (clients[data.id]) {
         clients[data.id].emit("onAcceptCall", data);
       }

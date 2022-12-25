@@ -8,7 +8,7 @@ const Name = (props) => {
       const user_id = props.record.params["user_id"];
       const options = {
         method: "GET",
-        url: `http://localhost:5000/api/user/${user_id}`,
+        url: `https://classifiedadvertising.herokuapp.com/api/user/${user_id}`,
       };
       const result = await axios(options);
       setUser(result.data.data);

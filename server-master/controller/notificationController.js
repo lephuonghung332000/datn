@@ -77,6 +77,32 @@ const getAllNotifications = async (req, res) => {
   }
 };
 
+const getUnreadNotifications = async (req, res) => {
+  try {
+    const notifications = db
+      .collection("notification")
+      .where("isNew", "==", true);
+    const data = await notifications.get();
+    if (data.empty) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetch notification unread successfully",
+        data: 0,
+      });
+    }
+    console.log(data.docs.length);
+    return res.status(200).json({
+      success: true,
+      message: "Fetch notification unread successfully",
+      data: data.docs.length,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Occur in server error" });
+  }
+};
+
 async function queryNotification(user_id, limit, start) {
   var data = db.collection("notification");
   if (user_id) {
@@ -121,13 +147,13 @@ const deleteFcmTokens = async (req, res) => {
   }
 
   try {
-    const docs = await db
+    const data = await db
       .collection("tokens")
       .where("token", "==", req.params.token)
       .get();
-    docs.forEach((doc) => {
-      doc.ref.delete();
-    });
+    for (var i = 0; i < data.docs.length; i++) {
+      data.docs[i].ref.delete();
+    }
     return res
       .status(200)
       .json({ success: true, message: "Delete fcmTokens successfully" });
@@ -177,40 +203,17 @@ const updateFcmTokens = async (req, res) => {
   }
 };
 
-const getUnreadNotifications = async (req, res) => {
-  try {
-    const notifications = db
-      .collection("notification")
-      .where("isNew", "==", true);
-    const data = await notifications.get();
-    if (data.empty) {
-      return res.status(200).json({
-        success: true,
-        message: "Fetch notification unread successfully",
-        data: 0,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      message: "Fetch notification unread successfully",
-      data: data.docs.length,
-    });
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
-  }
-};
-
 const updateAllNewNotification = async (req, res) => {
   try {
-    const docs = await db
+    const data = await db
       .collection("notification")
       .where("isNew", "==", true)
       .get();
-    docs.forEach((doc) => {
-      doc.ref.update({ isNew: false });
-    });
+      
+    for (var i = 0; i < data.docs.length; i++) {
+      data.docs[i].ref.update({ isNew: false });
+    }
+
     return res
       .status(200)
       .json({ success: true, message: "Update notification successfully" });

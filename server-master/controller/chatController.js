@@ -1,7 +1,9 @@
-const { db } = require("../config/fbConfig");
+const { db, firebaseStorage } = require("../config/fbConfig");
 const PAGE_SIZE = 10;
+const PAGE_SIZE_MESSAGE = 10;
 const HintChat = require("../models/HintChat");
 const Chat = require("../models/Chat");
+const MessageChat = require("../models/MessageChat");
 
 const getAllHintChats = async (req, res) => {
   try {
@@ -20,6 +22,94 @@ const getAllHintChats = async (req, res) => {
     return res.status(500).json({ success: false, message: error });
   }
 };
+
+const getAllMessageChats = async (req, res) => {
+  var page = req.query.page;
+  const chat_box_id = req.params.id;
+  var lengthChat;
+  var data;
+  // try {
+    if (page) {
+      // get page
+      page = parseInt(page);
+      if (page < 1) {
+        page = 1;
+      }
+      if (page == 1) {
+        data = await queryMessageChat(chat_box_id, PAGE_SIZE_MESSAGE, null);
+      } else {
+        var start = (page - 1) * PAGE_SIZE_MESSAGE;
+
+        const snapshot = await queryMessageChat(chat_box_id, start, null);
+
+        if (snapshot.docs.length < start) {
+          data = [];
+        } else {
+          // Get the last document
+          var last = snapshot.docs[snapshot.docs.length - 1];
+
+          data = await queryMessageChat(
+            chat_box_id,
+            PAGE_SIZE_MESSAGE,
+            last.data().create_at
+          );
+        }
+      }
+      // don't pass page
+    } else {
+      data = await queryMessageChat(chat_box_id, null, null);
+    }
+
+    const chatsArray = [];
+    if (data.empty || data.docs == undefined) {
+      return res.status(200).json({
+        success: true,
+        message: "Fetch chat successfully",
+        total: 0,
+        data: [],
+      });
+    }
+    var allchats = await queryMessageChat(chat_box_id, null, null);
+    lengthChat = allchats.docs.length;
+
+    for (var i = 0; i < data.docs.length; i++) {
+      const chat = new MessageChat(
+        data.docs[i].id,
+        chat_box_id,
+        data.docs[i].data().content,
+        data.docs[i].data().sendBy,
+        data.docs[i].data().image,
+        data.docs[i].data().create_at
+      );
+      chatsArray.push(chat);
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Fetch message chat successfully",
+      total: lengthChat,
+      data: chatsArray,
+    });
+  // } catch (error) {
+  //   return res
+  //     .status(500)
+  //     .json({ success: false, message: "Occur in server error" });
+  // }
+};
+
+async function queryMessageChat(chat_box_id, limit, start) {
+  var data = db.collection("message_chat");
+  if (chat_box_id) {
+    data = data.where("chat_box_id", "==", chat_box_id);
+  }
+  data = data.orderBy("create_at", "desc");
+  if (start) {
+    data = data.startAfter(start);
+  }
+  if (limit) {
+    data = data.limit(limit);
+  }
+  return await data.get();
+}
 
 const getAllChats = async (req, res) => {
   var page = req.query.page;
@@ -224,11 +314,6 @@ const createMessageChat = async (req, res) => {
       .status(400)
       .json({ succes: false, message: "Missing field sender" });
   }
-  if (!req.body.content) {
-    return res
-      .status(400)
-      .json({ succes: false, message: "Missing field message" });
-  }
   if (!req.body.create_at) {
     return res
       .status(400)
@@ -270,32 +355,47 @@ const createMessageChat = async (req, res) => {
 };
 
 async function updateExtra(req, res, file) {
-  try {
-    const messageChatDb = db.collection("message_chat");
-    const response = await messageChatDb.doc().set({
-      image: file,
-      title: req.body.title,
-      content: req.body.content,
-      url: req.body.url,
-    });
-    if (response) {
-      return res
-        .status(200)
-        .json({ success: true, message: "Add message chat successfully" });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Add message chat failed" });
-    }
-  } catch (e) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Occur in server error" });
+  // try {
+  const messageChatDb = db.collection("message_chat");
+  var content = req.body.content;
+  if (file == undefined || file == null) {
+    file = '';
   }
+
+  if (req.body.content == undefined) {
+    content = null;
+  }
+
+  const response = await messageChatDb.doc().set({
+    image: file,
+    chat_box_id: req.body.chat_box_id,
+    content: content,
+    sendBy: req.body.sendBy,
+    create_at: parseFloat(req.body.create_at),
+  });
+  var data = "";
+  if (file) {
+    data = file;
+  }
+  if (response) {
+    return res
+      .status(200)
+      .json({ success: true, message: "Add message chat successfully",data:data });
+  } else {
+    return res
+      .status(400)
+      .json({ success: false, message: "Add message chat failed" });
+  }
+  // } catch (e) {
+  //   return res
+  //     .status(500)
+  //     .json({ success: false, message: "Occur in server error" });
+  // }
 }
 module.exports = {
   getAllHintChats,
   getAllChats,
+  getAllMessageChats,
   addChat,
-  createMessageChat
+  createMessageChat,
 };

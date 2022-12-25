@@ -131,13 +131,13 @@ const handlerCreateAds = async (form, sendNotice) => {
 
     const options = {
       method: "POST",
-      url: `http://localhost:5000/api/ads/addAds`,
+      url: `https://classifiedadvertising.herokuapp.com/api/ads/addAds`,
       data: form,
       headers: { "Content-Type": "multipart/form-data" },
     };
     await axios(options);
   
-    window.open("http://localhost:5000/admin/resources/advertising");
+    window.open("https://classifiedadvertising.herokuapp.com/admin/resources/advertising");
     window.close();
     sendNotice({ message: "Send success", type: "success" });
   } catch (error) {
