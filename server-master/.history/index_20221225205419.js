@@ -67,6 +67,16 @@ app.use(adminBro.options.rootPath, loginAdminRouter);
 app.use(express.json());
 const corsOpts = {
   origin: "*",
+  methods: [
+    'GET',
+    'POST',
+    'PATCH',
+    'DELETE'
+  ],
+
+  allowedHeaders: [
+    'Content-Type',
+  ],
 };
 app.use(cors(corsOpts));
 
