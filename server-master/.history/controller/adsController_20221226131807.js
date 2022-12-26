@@ -113,7 +113,7 @@ const createAds = async (req, res) => {
 const deleteAds = async (req, res) => {
   const id = req.params.id;
   try {
-    const ads = db.collection("adss").doc(id);
+    const ads = db.collection("adsvetise").doc(id);
     const response = await ads.delete();
     if (response) {
       return res
