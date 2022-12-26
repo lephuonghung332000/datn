@@ -4,14 +4,5 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if true;
     }
-    match /user/{document} {
-     allow delete: if get(/databases/$(database)/documents/user/$(request.auth.uid)).data.isAdmin == true;
-    }
-    match /ads/{document} {
-     allow create: if get(/databases/$(database)/documents/user/$(request.auth.uid)).data.isAdmin == true;
-    }
-     match /category/{document} {
-     allow create: if get(/databases/$(database)/documents/user/$(request.auth.uid)).data.isAdmin == true;
-    }
   }
 }

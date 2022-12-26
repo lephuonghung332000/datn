@@ -4,7 +4,7 @@ const Ads = require("../models/Ads");
 
 const getAllAds = async (req, res) => {
   try {
-    const ads = db.collection("advertising");
+    const ads = db.collection("ads");
     const data = await ads.get();
     const adsArray = [];
     if (data.empty) {
@@ -84,7 +84,7 @@ const createAds = async (req, res) => {
     // Get a signed URL for the file
     try {
       const signedUrlArray = await blob.getSignedUrl(options);
-      const adsDb = db.collection("advertising");
+      const adsDb = db.collection("ads");
       const response = await adsDb.doc().set({
         image: signedUrlArray[0],
         title: req.body.title,
@@ -113,7 +113,7 @@ const createAds = async (req, res) => {
 const deleteAds = async (req, res) => {
   const id = req.params.id;
   try {
-    const ads = db.collection("advertising").doc(id);
+    const ads = db.collection("ads").doc(id);
     const response = await ads.delete();
     if (response) {
       return res

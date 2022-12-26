@@ -7,7 +7,7 @@ const CategoryName = (props) => {
     const init = async () => {
       const options = {
         method: "GET",
-        url: `https://classifiedadvertising.herokuapp.com/api/category`,
+        url: `http://localhost:5000/api/category`,
       };
       const _catetories = await axios(options);
       const _category = _catetories.data.data.find(function (e) {

@@ -4,22 +4,23 @@ const admin = require("firebase-admin");
 const credentials = require("../key.json");
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAQQtOlAhGEudcslxkFqoCO_5s-nFrp078",
-  authDomain: "advertising-classified.firebaseapp.com",
-  databaseURL: "https://advertising-classified-default-rtdb.firebaseio.com",
-  projectId: "advertising-classified",
-  messagingSenderId: "257214432280",
-  appId: "1:257214432280:web:9a54a8edb60911ebe7af6d",
-  measurementId: "G-WHH7TRJVF2",
-  storageBucket: "advertising-classified.appspot.com",
+  apiKey: "AIzaSyAlqchcJ2WjIfAxfOMUUQfgGqhYcReSfvY",
+  authDomain: "advertising-classified-6ee26.firebaseapp.com",
+  projectId: "advertising-classified-6ee26",
+  storageBucket: "advertising-classified-6ee26.appspot.com",
+  messagingSenderId: "853272076054",
+  appId: "1:853272076054:web:36874170f6df36b0417a37",
+  measurementId: "G-XR31G42R35",
+  databaseURL: "https://advertising-classified-default-rtdb.firebaseio.com"
 };
+
 
 firebase.initializeApp(firebaseConfig);
 
 admin.initializeApp({
   credential: admin.credential.cert(credentials),
-  databaseURL: "https://advertising-classified-default-rtdb.firebaseio.com",
-  storageBucket: "advertising-classified.appspot.com",
+  storageBucket: "advertising-classified-6ee26.appspot.com",
+  databaseURL: "https://advertising-classified-default-rtdb.firebaseio.com"
 });
 
 const db = admin.firestore();

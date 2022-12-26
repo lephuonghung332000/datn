@@ -3,7 +3,7 @@ const AdminBro = require("admin-bro");
 const axios = require("axios");
 
 module.exports = {
-  collection: db.collection("advertising"),
+  collection: db.collection("ads"),
   schema: {
     content: "string",
     image: "string",

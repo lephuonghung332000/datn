@@ -19,7 +19,7 @@ async function getAllToken() {
 }
 
 async function getTokensByUserId(user_id) {
-  try {
+  // try {
     const tokens = db.collection("tokens");
     const data = await tokens.where("user_id", "==", user_id).get();
     const tokensArray = [];
@@ -31,9 +31,9 @@ async function getTokensByUserId(user_id) {
       tokensArray.push(token);
     });
     return tokensArray;
-  } catch (error) {
-    return [];
-  }
+  // } catch (error) {
+  //   return [];
+  // }
 }
 
 async function getAllUserIds() {
